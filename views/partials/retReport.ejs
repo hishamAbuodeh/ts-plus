@@ -1,0 +1,52 @@
+<div id="demo-modal" class="modal-v">
+  <div class="report__content">
+    <div id="closeDiv">
+      <button id="close">X</button>
+    </div>
+    <div class="container py-5">
+      <div class="row py-5">
+        <div class="col-lg-10 mx-auto">
+          <div class="card rounded shadow border-0">
+            <div class="card-body p-5 bg-white rounded">
+              <div class="table-responsive">
+                <table
+                  id="example"
+                  style="width: 100%"
+                  class="table table-striped table-bordered"
+                >
+                  <thead>
+                    <tr>
+                      <th>Item Code</th>
+                      <th>Item Name</th>
+                      <th>Barcode</th>
+                      <th>P.O Number</th>
+                      <th>Qty</th>
+                      <th>Unit</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody">
+                    <% for(let i = 0; i < results.length; i++){ const item =
+                    results[i] %> 
+                    <tr>
+                      <td id="td1-<%= item.id %>"><%= item.ItemCode %></td>
+                      <td id="td2-<%= item.id %>"><%= item.ItemName %></td>
+                      <td id="td3-<%= item.id %>"><%= item.CodeBars %></td>
+                      <% if(item.DocNum == 0) { %>
+                      <td id="td-<%= item.id %>">لا يوجد</td>
+                      <% } else { %>
+                      <td id="td-<%= item.id %>"><%= item.DocNum %></td>
+                      <% } %>
+                      <td id="td-<%= item.id %>"><%= item.Order %></td>
+                      <td id="td7-<%= item.id %>"><%= item.BuyUnitMsr %></td>
+                    </tr>
+                    <% } %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

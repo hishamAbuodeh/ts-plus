@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/request.css"/>
+    <link rel="stylesheet" href="/table/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/table/font-awesome.min.css"/>
+    <link rel="stylesheet" href="/table/dataTables.bootstrap4.min.css"/>
+    <link rel="stylesheet" href="/css/modal.css"/>
+    <link rel="stylesheet" href="/css/sync.css"/>
+    <link rel="stylesheet" href="/css/netError.css"/>
+    <link rel="stylesheet" href="/css/success.css"/>
+    <script src="/table/jquery-3.3.1.slim.min.js"></script>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/table/bootstrap.bundle.min.js"></script>
+    <script src="/table/jquery.dataTables.min.js"></script>
+    <script src="/table/dataTables.bootstrap4.min.js"></script>
+    <script src="/js/orders.js"></script>
+    <title>Request</title>
+</head>
+<body id="body" style="position: relative;width:100">
+    <div>
+        <%- include("partials/table",{info : {results : data.results, page : 'transfer'}}) %>
+    </div>
+    <div class="otterDiv">
+        <%- include("partials/transferFrom",{info : {results : data.results, page : 'transfer', match : data.match}}) %>
+        <div class="btuLoctaion">
+            <botton id="report" class="btu"><p class="para">
+                <% if (data.results) {
+                    %> Report <%
+                 }else{
+                     %> Sent report <%
+                 } %>
+            </p></botton>
+            <botton id="submitOrder" class="btu" style="margin-left: 30px;"><p class="para">Submit</p></botton>
+            <botton id='exit' class="btu" style="margin-left: 30px;"><p class="para">
+                <% if (data.results) {
+                   %> Exit <%
+                }else{
+                    %> Log out <%
+                } %>
+            </p></botton>
+        </div>
+    </div>
+    <div>
+        <%- include("partials/modal") %>
+    </div>
+    <div id="reportDiv"></div>
+</body>
+</html>
