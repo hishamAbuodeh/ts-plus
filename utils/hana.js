@@ -42,7 +42,7 @@ const warehouseMatch = async (whs) => {
         console.log(err)
         reject()
       };
-      connection.exec(`Select * from "RAYHAN_NEW"."WHS_REP"`, (err, result) => {
+      connection.exec(`Select * from "RAYHAN_2022"."WHS_REP"`, (err, result) => {
           resolve(result)
           connection.disconnect();
       });
