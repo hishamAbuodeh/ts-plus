@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/transaction.css" />
+    <link rel="stylesheet" href="/css/cards.css" />
+    <link rel="stylesheet" href="/css/routing.css"/>
+    <link rel="stylesheet" href="/css/modal.css"/>
+    <link rel="stylesheet" href="/css/sync.css"/>
+    <link rel="stylesheet" href="/css/netError.css"/>
+    <link rel="stylesheet" href="/css/success.css"/>
+    <link rel="stylesheet" href="/css/choose.css"/>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/transaction.js"></script>
+    <script src="/js/chooseFrom.js"></script>
+    <title>From</title>
+</head>
+<body class="bodyClass" id="body">
+    <div id="choose">
+        <div id="innerChoose">
+            <%- include("partials/transferFrom",{info : {results : data.results, match : data.match}}) %>
+            <button class="btu">Enter</button>
+        </div>
+    </div>
+    <div>
+        <%- include("partials/modal") %>
+    </div>
+</body>
+</html>

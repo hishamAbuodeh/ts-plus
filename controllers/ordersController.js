@@ -1,6 +1,7 @@
 const prisma = require('../utils/prismaDB');
 const functions = require('../utils/functions');
 const file = require('../utils/readAndWriteFiles')
+const hana = require('../utils/hana')
 
 const requestPage = async (req,res) => {
     if(req.session.loggedin)
@@ -25,22 +26,55 @@ const requestPage = async (req,res) => {
     }
 }
 
+const chooseFrom = async (req,res) => {
+    if(req.session.loggedin)
+    {
+        hana.warehouseMatch(req.session.whsCode)
+        .then((str) => {
+            if(str){
+                const start = async() => {
+                    const arr = functions.configWarehouses(str)
+                    let match = await file.getMatchingFile()
+                    match = functions.codeToName(match)
+                    const data = {
+                        results:arr,
+                        match 
+                    }
+                    res.render('whsFrom',{data})
+                }
+                start()
+            }else{
+                res.render('error')
+            }
+        }).catch(err => {
+            res.render('transaction')
+        });
+    }else{
+        res.redirect('/Login')
+    }
+}
+
+const saveChoose = async(req,res) => {
+    const {from} = req.params
+    if(req.session.loggedin)
+    {
+        req.session.from = from
+        res.send('done')
+    }else{
+        res.redirect('/Login')
+    }
+}
+
 const transferPage = async (req,res) => {
     if(req.session.loggedin)
     {
         prisma.getDataLocal(req.session.whsCode).then(results => {
-            results = results.map(rec => {
-                rec.Warehouses = functions.configWarehouses(rec)
-                return rec
-            })
             const start = async() => {
-                let match = await file.getMatchingFile()
-                match = functions.codeToName(match)
                 const data = {
                     results,
                     username : req.session.username,
                     whsCode : req.session.whsCode,
-                    match 
+                    from : req.session.from
                 }
                 res.render('transfer',{data})
             }
@@ -252,4 +286,6 @@ module.exports = {
     createSuggest,
     removeSuggest,
     label,
+    chooseFrom,
+    saveChoose
 }

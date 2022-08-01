@@ -2,6 +2,7 @@ require('dotenv').config();
 const sql = require('./sql');
 const hana = require('./hana');
 const prisma = require('./prismaDB');
+const file = require('./readAndWriteFiles')
 
 // enviroment variables
 const USERS_TABLE = process.env.USERS_TABLE
@@ -43,7 +44,7 @@ const getWhs = async (username) => {
     }
 }
 
-const getAndSaveData = async (whs,page) => {
+const getAndSaveData = async (whs,page,value) => {
     try{
         return new Promise((resolve,reject) => {
             let msg
@@ -52,9 +53,15 @@ const getAndSaveData = async (whs,page) => {
                     return prisma.createRecords(results,page)
                 })
             }else if(page == "goTransfer"){
-                msg = hana.getItemsTransfer(whs).then(results => {
-                    return prisma.createRecords(results,page)
-                })
+                const start = async () => {
+                    let match = await file.getMatchingFile()
+                    match = nameToCode(match)
+                    const from = match[value]
+                    return hana.getItemsTransfer(whs,from).then(results => {
+                        return prisma.createRecords(results,page)
+                    })
+                }
+                msg = start()
             }else if(page == "goReturn"){
                 msg = hana.getItems(whs).then(results => {
                     return prisma.createReturnRecords(results)
@@ -247,8 +254,8 @@ const startReturnTransaction = async (pool,rec,userName,arr,length,note,genCode)
     })
 }
 
-const configWarehouses = (record) => {
-    const whsSTR = record.Warehouses
+const configWarehouses = (str) => {
+    const whsSTR = str
     return whsSTR.split(',')
 }
 

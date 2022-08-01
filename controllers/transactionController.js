@@ -15,10 +15,14 @@ const transactionPage = (req,res) => {
 
 const syncData = async (req,res) => {
     const {page} = req.params
+    let from = null;
     if(req.session.loggedin)
     {
         const whs = req.session.whsCode
-        const msg = await functions.getAndSaveData(whs,page)
+        if(page == "goTransfer"){
+            from = req.session.from
+        }
+        const msg = await functions.getAndSaveData(whs,page,from)
         if(msg == 'done'){
             res.send('done')
         }else{

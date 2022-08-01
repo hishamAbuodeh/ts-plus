@@ -503,7 +503,7 @@ const createNewRequestRecord = async (record,genCode,id,page) => {
           WhsName: record.WhsName != null? record.WhsName : undefined,
           CodeBars: record.CodeBars != null? record.CodeBars : undefined,
           ConvFactor: record.ConvFactor != null? record.ConvFactor : undefined,
-          Warehousefrom: page == "goTransfer" ? "102" : (record.ListName == 'Consumable'? '104' : '102'),
+          Warehousefrom: page == "goTransfer" ? record.Warehouses : (record.ListName == 'Consumable'? '104' : '102'),
           Warehouses: page == "goTransfer" ? record.Warehouses : undefined,
           GenCode: genCode
         }
