@@ -20,8 +20,7 @@ $(document).ready(function() {
         goToPage('goReceipt')
     })
     $('#transfer').on('click',()=>{
-        page = 'goTransfer'
-        showPage(page)
+        goToPage('goChoose')
     })
     $('#return').on('click',()=>{
         page = 'goReturn'

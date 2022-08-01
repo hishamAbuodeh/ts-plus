@@ -6,6 +6,7 @@ const file = require("./readAndWriteFiles");
 const HANA_HOST = process.env.HANA_HOST;
 const HANA_USER = process.env.HANA_USER;
 const HANA_PASSWORD = process.env.HANA_PASSWORD;
+const HANA_DATABASE = process.env.HANA_DATABASE;
 
 const hanaConfig = {
   serverNode: `${HANA_HOST}:30015`,
@@ -17,17 +18,16 @@ const hanaConfig = {
 const connection = hana.createConnection();
 
 const getItems = async (whs) => {
-  const procedureStatment = `CALL "RAYHAN_2022"."SP_DIPS_StockReq" ('${whs}')`;
+  const procedureStatment = `CALL "${HANA_DATABASE}"."SP_DIPS_StockReq" ('${whs}')`;
   return execute(procedureStatment);
 };
 
-const getItemsTransfer = async (whs) => {
-  const procedureStatment = `CALL "RAYHAN_2022"."SP_DIPS_StockReq" ('${whs}')`
+const getItemsTransfer = async (whs,from) => {
+  const procedureStatment = `CALL "${HANA_DATABASE}"."SP_DIPS_Transfer" ('${whs}','${from}')`
   const results = await execute(procedureStatment)
-  const str = await warehouseMatch(whs)
-  if(str != 'error'){
+  if(results.length > 0){
     return results.map(item => {
-      item.Warehouses = str;
+      item.Warehouses = from;
       return item
     })
   }else{
@@ -42,7 +42,7 @@ const warehouseMatch = async (whs) => {
         console.log(err)
         reject()
       };
-      connection.exec(`Select * from "RAYHAN_2022"."WHS_REP"`, (err, result) => {
+      connection.exec(`Select * from "${HANA_DATABASE}"."WHS_REP"`, (err, result) => {
           resolve(result)
           connection.disconnect();
       });
@@ -72,7 +72,7 @@ const warehouseMatch = async (whs) => {
 };
 
 const getPOitems = async (whs,number) => { 
-  const procedureStatment = `CALL "RAYHAN_2022"."SP_DIPS_PurchaseOrder"  ('${whs}','${number}')`;
+  const procedureStatment = `CALL "${HANA_DATABASE}"."SP_DIPS_PurchaseOrder"  ('${whs}','${number}')`;
   return execute(procedureStatment);
 };
 

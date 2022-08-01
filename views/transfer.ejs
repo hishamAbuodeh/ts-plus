@@ -25,7 +25,7 @@
         <%- include("partials/table",{info : {results : data.results, page : 'transfer'}}) %>
     </div>
     <div class="otterDiv">
-        <%- include("partials/transferFrom",{info : {results : data.results, page : 'transfer', match : data.match}}) %>
+        <%- include("partials/from",{from : data.from}) %>
         <div class="btuLoctaion">
             <botton id="report" class="btu"><p class="para">
                 <% if (data.results) {

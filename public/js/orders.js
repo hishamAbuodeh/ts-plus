@@ -56,9 +56,9 @@ $(function () {
       logOut();
     }
   });
-  $("#select-0").on("click", () => {
-    selectFrom('#select-0')
-  });
+  // $("#select-0").on("click", () => {
+  //   selectFrom('#select-0')
+  // });
   $("#suggestion").on("click", (e) => {
     const txt = $("#suggestion p")[0].innerHTML.trim();
     if (txt == "Suggestion") {

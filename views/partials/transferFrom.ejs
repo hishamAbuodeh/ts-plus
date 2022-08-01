@@ -1,30 +1,19 @@
-<% if (info.page == 'transfer') { %>
-    <div id="div" style="width:60%;display: flex;justify-content: flex-end;align-items: center;">
-      <label style="margin-right: 5px;">
-        From : 
-      </label>
-      <select id="select-0" style="width: 53%;">
-        <% 
-          let skipWhs = 0;
-          for(let j = -1; j < info.results[0].Warehouses.length; j++){
-            if(j == -1){
-              if(info.results[0].Warehousefrom == "102"){ %>
-                <option></option>
-              <% } else { %>
-                <option>
-                  <%= info.match[info.results[0].Warehousefrom] %>
-                </option>
-              <% skipWhs = info.results[0].Warehousefrom 
-              }
-            } else {
-              if(skipWhs != info.results[0].Warehouses[j]) { %>
-                <option>
-                  <%= info.match[info.results[0].Warehouses[j]] %>
-                </option>
-              <% }
-            }
-          } 
-        %>
-      </select>
-    </div>
-  <% } %> 
+<div id="div" style="width:60%;display: flex;justify-content: flex-end;align-items: center;">
+  <label style="margin-right: 5px;">
+    From : 
+  </label>
+  <select id="select-0" style="width: 53%;">
+    <% 
+      let skipWhs = 0;
+      for(let j = -1; j < info.results.length; j++){
+        if(j == -1){ %>
+          <option></option>
+        <% } else { %>
+          <option>
+            <%= info.match[info.results[j]] %>
+          </option>
+        <% }
+      } 
+    %>
+  </select>
+</div>
