@@ -356,15 +356,25 @@ const deleteAll = async (genCode) => {
 }
 
 const createReq = async (rec,genCode,arr,index,page) => {
-    return createNewRequestRecord(rec,genCode,index,page)
-    .catch((e) => {
-        console.log(e)
-        return e
-    })
-    .finally(async () => {
-        await prisma.$disconnect()
+    if((typeof rec.MinStock == "string") && (typeof rec.MaxStock == "string")){
+        if((parseInt(rec.MinStock) != 0) || (parseInt(rec.MaxStock) != 0)){
+            return createNewRequestRecord(rec,genCode,index,page)
+            .catch((e) => {
+                console.log(e)
+                return e
+            })
+            .finally(async () => {
+                await prisma.$disconnect()
+                arr.push('added')
+            })
+        }else{
+            arr.push('added')
+            return
+        }
+    }else{
         arr.push('added')
-    })
+        return
+    }
 }
 
 const createHes = async (rec,arr) => {
