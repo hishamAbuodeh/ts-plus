@@ -147,6 +147,17 @@
     box-shadow: 0px 6px 18px -5px green;
   }
 
+  .netError_Content  button.start_count {
+    background-color: green;
+    border: none;
+    border-radius: 5px;
+    width: 200px;
+    padding: 14px;
+    font-size: 16px;
+    color: white;
+    box-shadow: 0px 6px 18px -5px green;
+  }
+
   .netError_btu{
     position: absolute;
     bottom: 0;
@@ -176,4 +187,19 @@
   .modal_notes_container{
     height: 100%;
     width: 100%;
+  }
+
+  .modal_counting_container{
+    height: 100%;
+    width: 100%;
+  }
+
+  .count_btu{
+    width: 75%;
+    position: absolute;
+    bottom: 0;
+    right: 10%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }

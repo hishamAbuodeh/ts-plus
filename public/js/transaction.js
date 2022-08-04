@@ -12,6 +12,21 @@ const goToPage = (page) => {
   }
 
 $(document).ready(function() {
+    const currentPage = $('title')[0].text
+    if(currentPage == "transaction"){
+        $.get('/Transaction/CheckCount')
+        .then((msg) => {
+            if(msg != '0'){
+                showModal('count')
+            }
+        })
+        .fail(() => {
+            alert("خطأ داخلي الرجاء");
+            setTimeout(() => {
+                location.reload();
+            },1000)
+        })
+    }
     $('#request').on('click',()=>{
         page = 'goRequest'
         showPage(page)
@@ -21,6 +36,9 @@ $(document).ready(function() {
     })
     $('#transfer').on('click',()=>{
         goToPage('goChoose')
+    })
+    $('.start_count').on('click',()=>{
+        goToPage('goCount')
     })
     $('#return').on('click',()=>{
         page = 'goReturn'
@@ -85,6 +103,9 @@ const showModal = (type) => {
         case "confirm":
             $(".modal_confirm_container").attr("style", "display:flex;");
             break;
+        case "count":
+            $(".modal_counting_container").attr("style", "display:flex;");
+            break;
         default:
             break;
     }
@@ -120,6 +141,9 @@ const hideModal = (type) => {
             break;
         case "confirm":
             $(".modal_confirm_container").attr("style", "display:none;");
+            break;
+        case "count":
+            $(".modal_counting_container").attr("style", "display:none;");
             break;
         default:
             break;
