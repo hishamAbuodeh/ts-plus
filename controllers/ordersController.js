@@ -26,6 +26,15 @@ const requestPage = async (req,res) => {
     }
 }
 
+const service = async (req,res) => {
+    if(req.session.loggedin)
+    {
+        res.render('partials/chooseService')
+    }else{
+        res.redirect('/Login')
+    }
+}
+
 const chooseFrom = async (req,res) => {
     if(req.session.loggedin)
     {
@@ -40,14 +49,14 @@ const chooseFrom = async (req,res) => {
                         results:arr,
                         match 
                     }
-                    res.render('whsFrom',{data})
+                    res.render('partials/whsFrom',{data})
                 }
                 start()
             }else{
-                res.render('error')
+                res.render('partials/error')
             }
         }).catch(err => {
-            res.render('transaction')
+            res.render('partials/error')
         });
     }else{
         res.redirect('/Login')
@@ -288,5 +297,6 @@ module.exports = {
     removeSuggest,
     label,
     chooseFrom,
-    saveChoose
+    saveChoose,
+    service
 }

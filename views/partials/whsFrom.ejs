@@ -20,12 +20,12 @@
 <body class="bodyClass" id="body">
     <div id="choose">
         <div id="innerChoose">
-            <%- include("partials/transferFrom",{info : {results : data.results, match : data.match}}) %>
+            <%- include("transferFrom",{info : {results : data.results, match : data.match}}) %>
             <button class="btu">Enter</button>
         </div>
     </div>
     <div>
-        <%- include("partials/modal") %>
+        <%- include("modal") %>
     </div>
 </body>
 </html>

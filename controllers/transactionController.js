@@ -13,10 +13,13 @@ const transactionPage = (req,res) => {
     }
 }
 
-const checkCount = (req,res) => {
+const checkConditions = (req,res) => {
     if(req.session.loggedin)
     {
-        res.send(req.session.countingAvailable)
+        res.send({
+            counting:req.session.countingAvailable,
+            open:req.session.open
+        })
     }else{
         res.redirect('/Login')
     }
@@ -45,5 +48,5 @@ const syncData = async (req,res) => {
 module.exports = {
     transactionPage,
     syncData,
-    checkCount
+    checkConditions
 }

@@ -1,5 +1,5 @@
 let page = ""
-
+let isOpened;
 const goToPage = (page) => {
     $.get('/Routing').then(data => {
       $('#body').html(data)
@@ -11,12 +11,18 @@ const goToPage = (page) => {
     });
   }
 
+  const goDirect = (page,data) => {
+    $('#body').html(data)
+    document.getElementById(`${page}`).click();
+  }
+
 $(document).ready(function() {
     const currentPage = $('title')[0].text
     if(currentPage == "transaction"){
-        $.get('/Transaction/CheckCount')
+        $.get('/Transaction/Check')
         .then((msg) => {
-            if(msg != '0'){
+            isOpened = msg.open
+            if(msg.counting != '0'){
                 showModal('count')
             }
         })
@@ -28,14 +34,20 @@ $(document).ready(function() {
         })
     }
     $('#request').on('click',()=>{
-        page = 'goRequest'
-        showPage(page)
+        if(isOpened){
+            page = 'goRequest'
+            showPage(page)
+        }else{
+            console.log(isOpened)
+        }
     })
     $('#receipt').on('click',()=>{
-        goToPage('goReceipt')
+        const data = `<div><a style="color: white;" href="/Receipt" id="goReceipt">press</a></div>`
+        goDirect('goReceipt',data)
     })
     $('#transfer').on('click',()=>{
-        goToPage('goChoose')
+        const data = `<div><a style="color: white;" href="/Transfer" id="goOpenTransfer">press</a></div>`
+        goDirect('goOpenTransfer',data)
     })
     $('.start_count').on('click',()=>{
         hideModal('count')
@@ -108,6 +120,9 @@ const showModal = (type) => {
         case "count":
             $(".modal_counting_container").attr("style", "display:flex;");
             break;
+        case "net-error4":
+            $('.modal_netError_container4').attr('style','display:flex;');
+            break;
         default:
             break;
     }
@@ -146,6 +161,9 @@ const hideModal = (type) => {
             break;
         case "count":
             $(".modal_counting_container").attr("style", "display:none;");
+            break;
+        case "net-error4":
+            $('.modal_netError_container4').attr('style','display:none;');
             break;
         default:
             break;

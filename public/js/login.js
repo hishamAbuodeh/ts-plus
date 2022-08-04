@@ -1,10 +1,7 @@
 const showTransaction= () => {
-  $.get('/Routing').then(data => {
-    $('#body').html(data)
-    $(document).ready(function() {
-      document.getElementById('goTransaction').click();
-    })
-  });
+  const data = `<div><a style="color: white;" href="/Transaction" id="goTransaction">press</a></div>`
+  $('#body').html(data)
+    document.getElementById(`goTransaction`).click();
 }
 
 const validate = (data) => {

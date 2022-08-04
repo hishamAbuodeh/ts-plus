@@ -4,7 +4,7 @@ const controller = require('../controllers/transactionController')
 
 // routes
 router.get('/',controller.transactionPage);
-router.get('/CheckCount',controller.checkCount);
+router.get('/Check',controller.checkConditions);
 router.post('/Sync/:page',controller.syncData);
 
 module.exports = router
