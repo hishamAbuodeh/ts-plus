@@ -391,6 +391,28 @@ const startPOtransaction = async (pool,rec,userName,arr,length) => {
     })
 }
 
+const checkOpenDays = (days) => {
+    const arabToNum = {
+        "الاحد" : 0,
+        "الاثنين" : 1,
+        "الثلاثاء" : 2,
+        "الاربعاء" : 3,
+        "الخميس" : 4,
+        "الجمعة" : 5,
+        "السبت" : 6,
+    }
+    const arr = days.split('-')
+    let open = false
+    arr.forEach((day) => {
+        const num = arabToNum[day]
+        const today = new Date().getDay()
+        if(num == today){
+            open = true
+        }
+    })
+    return open
+}
+
 module.exports = {
     toggleRequestButton,
     getUser,
@@ -403,4 +425,5 @@ module.exports = {
     syncPOData,
     sendPOtoSQL,
     sendReturnItems,
+    checkOpenDays
 }

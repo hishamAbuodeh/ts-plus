@@ -12,6 +12,7 @@
                     <th>Item Name</th>
                     <th>Barcode</th>
                     <!-- <th>Branch</th> -->
+                    <th>Avg. Daily Sale</th>
                     <th>On Hand</th>
                     <th>Min</th>
                     <th id="max-th">Max</th>
@@ -45,7 +46,8 @@
                       <td id="td-<%= item.id %>"><%= item.ItemName %></td>
                       <td id="td-<%= item.id %>"><%= item.CodeBars %></td>
                       <!-- <td id="td-<%= item.id %>"><%= item.ListName %></td> -->
-                      <td id="td-<%= item.id %>"><%= item.OnHand %></td>
+                      <td id="td-<%= item.id %>"><%= item.AvgDaily %></td>
+                      <td id="onHand-<%= item.id %>"><%= item.OnHand %></td>
                       <td id="min-<%= item.id %>"><%= item.MinStock %></td>
                       <td id="max-<%= item.id %>"><%= item.MaxStock %></td>
                       <% if(item.Order > 0) { %>

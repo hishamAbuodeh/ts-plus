@@ -13,6 +13,8 @@ model requestItems {
     ItemName String
     ListNum Int
     ListName String
+    AvgDaily Decimal @db.Decimal(10,6) @default(0)
+    SuggQty Decimal @db.Decimal(10,6) @default(0)
     OnHand Decimal @db.Decimal(10,6) @default(0)
     MinStock Decimal @db.Decimal(10,6) @default(0)
     MaxStock Decimal @db.Decimal(10,6) @default(0)

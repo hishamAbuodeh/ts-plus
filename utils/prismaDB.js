@@ -504,6 +504,8 @@ const createNewRequestRecord = async (record,genCode,id,page) => {
           ItemName: record.ItemName != null? record.ItemName : undefined,
           ListNum: record.ListNum != null? record.ListNum : undefined,
           ListName: record.ListName != null? record.ListName : undefined,
+          AvgDaily: record.AvgDaily != null? record.AvgDaily : undefined,
+          SuggQty: record.SuggQty != null? record.SuggQty : undefined,
           OnHand: record.OnHand != null? record.OnHand : undefined,
           MinStock: record.MinStock != null? record.MinStock : undefined,
           MaxStock: record.MaxStock != null? record.MaxStock : undefined,

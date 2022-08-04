@@ -1,6 +1,8 @@
 let page;
 let option = ""
 let note= ""
+let minmumOrder;
+let closeOrder;
 $(function () {
   $(document).ready(function () {
     $("#example").DataTable();
@@ -132,7 +134,8 @@ const save = (id, input, previousVal,lastValue) => {
         } else {
           const conv = $(`#conv${id}`)[0].innerHTML;
           const uom = $(`#uom-${id}`)[0].innerHTML;
-          alert(`الكمية يجب ان تكون من مضاعفات (${conv} ${uom})`);
+          closeOrder = getCloseOrder(value,conv)
+          alert(`الكمية يجب ان تكون من مضاعفات (${conv} ${uom}) اقرب كمية هي ${closeOrder}`);
           input.val("");
         }
       } else {
@@ -145,7 +148,7 @@ const save = (id, input, previousVal,lastValue) => {
       if (previousVal) {
         setOrderValueZero(id);
       }
-      alert("(Min - Max) الكمية يجب ان تكون بين");
+      alert(`(${minmumOrder} - Max) الكمية يجب ان تكون بين`);
       input.val("");
     }
   }
@@ -165,9 +168,17 @@ const trim = (value) => {
 const check = (value, id) => {
   const min = $(`#min-${id}`);
   const max = $(`#max-${id}`);
-  const minValue = min[0].innerHTML != 0 ? min[0].innerHTML : value;
-  const maxValue = max[0].innerHTML != 0 ? max[0].innerHTML : value;
-  if ((value <= maxValue) & (value >= minValue)) {
+  const onHand = $(`#onHand-${id}`);
+  const minValue = min[0].innerHTML;
+  const maxValue = max[0].innerHTML;
+  const onHandValue = onHand[0].innerHTML;
+  let minOrder = (minValue - onHandValue) <= 0? 1 : (minValue - onHandValue)
+  const conv = $(`#conv${id}`)[0].innerHTML != 0 ? $(`#conv${id}`)[0].innerHTML : minOrder;
+  if (minOrder % conv != 0) {
+    minOrder = minOrder + (conv - minOrder % conv)
+  }
+  minmumOrder = minOrder
+  if ((value <= maxValue) & (value >= minOrder)) {
     return true;
   } else {
     return false;
@@ -175,14 +186,27 @@ const check = (value, id) => {
 };
 
 const checkMulti = (value, id) => {
-  const conv =
-    $(`#conv${id}`)[0].innerHTML != 0 ? $(`#conv${id}`)[0].innerHTML : value;
+  const conv = $(`#conv${id}`)[0].innerHTML != 0 ? $(`#conv${id}`)[0].innerHTML : value;
   if (value % conv == 0) {
     return true;
   } else {
     return false;
   }
 };
+
+const getCloseOrder = (value,conValue) => {
+  const firstClose = value + (conValue - value % conValue)
+  let seconClose;
+  if(value > conValue){
+    seconClose = value - (value % conValue)
+  }else{
+    seconClose = firstClose
+  }
+  if(seconClose < 0){
+    seconClose = firstClose
+  }
+  return Math.abs(firstClose - value) <= Math.abs(value- seconClose)? firstClose : seconClose
+}
 
 const setOrderValueZero = async (id) => {
   $.post(`/Order/Save/${id}/0`).then((msg) => {

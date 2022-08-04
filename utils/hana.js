@@ -19,7 +19,20 @@ const connection = hana.createConnection();
 
 const getItems = async (whs) => {
   const procedureStatment = `CALL "${HANA_DATABASE}"."SP_DIPS_StockReq" ('${whs}')`;
-  return execute(procedureStatment);
+  // return execute(procedureStatment); only for production
+  ////////////////////////////////////////////////////////////////////////
+  // only for test
+  const results = await execute(procedureStatment)
+  if(results.length > 0){
+    return results.map(item => {
+      item.AvgDaily = 20;
+      item.SuggQty = 35;
+      return item
+    })
+  }else{
+    return
+  }
+  ///////////////////////////////////////////////////////////////////////
 };
 
 const getItemsTransfer = async (whs,from) => {
@@ -28,6 +41,11 @@ const getItemsTransfer = async (whs,from) => {
   if(results.length > 0){
     return results.map(item => {
       item.Warehouses = from;
+      ///////////////////////////////////////////////////////////////////
+      // only for test
+      item.AvgDaily = 20;
+      item.SuggQty = 35;
+      ///////////////////////////////////////////////////////////////////
       return item
     })
   }else{

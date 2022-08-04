@@ -193,13 +193,14 @@ const createSuggest = async (req,res) => {
         const order = rec.Order
         const id = rec.id
         const convFac = rec.ConvFactor
-        if(order == 0){
-            let value = min - onHand
+        const suggQty = rec.SuggQty
+        if((order == 0) && ((min - onHand) > 0)){
+            let value = suggQty
             if(value > 0){
-                if(min % convFac == 0){
-                    value = min
+                if(suggQty % convFac == 0){
+                    value = suggQty
                 }else{
-                    value = parseInt(min) + (parseInt(convFac) - parseInt(min % convFac))
+                    value = parseFloat(suggQty) + (parseFloat(convFac) - parseFloat(suggQty % convFac))
                 }
                 new Promise((resolve,reject) => {
                     prisma.updateSuggest(id,value,true)
