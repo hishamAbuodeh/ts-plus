@@ -38,7 +38,9 @@ $(document).ready(function() {
         goToPage('goChoose')
     })
     $('.start_count').on('click',()=>{
-        goToPage('goCount')
+        hideModal('count')
+        page = 'goCount'
+        showPage(page)
     })
     $('#return').on('click',()=>{
         page = 'goReturn'

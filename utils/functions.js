@@ -66,6 +66,8 @@ const getAndSaveData = async (whs,page,value) => {
                 msg = hana.getItems(whs).then(results => {
                     return prisma.createReturnRecords(results)
                 })
+            }else if(page == "goCount"){
+                msg = 'done'
             }
             resolve(msg)
         }).then((msg) => {
