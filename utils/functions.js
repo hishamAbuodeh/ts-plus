@@ -163,7 +163,7 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
             }else if(page == "request"){
                 warehousefrom = rec.ListName == 'Consumable'? '104' : '102';
                 warehouseTo = rec.WhsCode
-            }else{
+            }else if(page == "receipt"){
                 warehousefrom = rec.WhsCode
                 warehouseTo = rec.ListName == 'Consumable'? '104' : '102';
             }

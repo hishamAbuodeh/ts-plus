@@ -340,7 +340,7 @@ const showReport = () => {
 };
 
 const showAllReports = () => {
-  $.get("/Order/AllReports").then((results) => {
+  $.get(`/Order/AllReports/${page}`).then((results) => {
     if (results == "error") {
       alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
     } else {

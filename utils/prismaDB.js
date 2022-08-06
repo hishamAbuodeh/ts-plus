@@ -276,6 +276,19 @@ const findAllSent = async(genCode) => {
     }
 }
 
+const findAllReceipt = async() => {
+    const records = await prisma.rquestOrderhistory.findMany({
+        where: {
+            Status:"receipt"
+        }
+    })
+    if(records.length > 0){
+        return records
+    }else{
+        return
+    }
+}
+
 const findAllSentReturn = async(genCode) => {
     const records = await prisma.returnhistory.findMany({
         where: {
@@ -400,6 +413,17 @@ const findOrderListTransfer = async() => {
     })
 }
 
+const findOrderReceiptList = async() => {
+    return await prisma.requestReceiptItems.findMany()
+    .catch((e) => {
+        console.log(e)
+        return
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
 const deleteAll = async (genCode) => {
     await prisma.requestItems.deleteMany({
         where:{
@@ -457,6 +481,32 @@ const update = async (id,value) => {
             await prisma.$disconnect()
             resolve()
         })
+    })
+}
+
+const updateReqReceipt = async (id,value,diffValue) => {
+    return new Promise((resolve,reject) => {
+        updateExistReqReceiptRecord(id,value,diffValue)
+        .catch((e) => {
+            console.log(e)
+            reject()
+        })
+        .finally(async () => {
+            await prisma.$disconnect()
+            resolve()
+        })
+    })
+}
+
+const updateExistReqReceiptRecord = async (recordID,value,diffValue) => {
+    await prisma.requestReceiptItems.update({
+        where:{
+            id : parseInt(recordID)
+        },
+        data : {
+            Order: value != null? parseFloat(value) : 0,
+            Difference: diffValue != null? parseFloat(diffValue) : 0
+        }
     })
 }
 
@@ -1049,5 +1099,8 @@ module.exports = {
     findAllSaved,
     createTable,
     deleteAllInReqReceipt,
-    getSavedLocal
+    getSavedLocal,
+    updateReqReceipt,
+    findOrderReceiptList,
+    findAllReceipt
 }

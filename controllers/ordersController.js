@@ -191,6 +191,20 @@ const saveOrderValue = async (req,res) => {
     }
 }
 
+const saveReceiptValue = async (req,res) => {
+    try{
+        const {id,value,diffValue} = req.params
+        prisma.updateReqReceipt(id,value,diffValue)
+        .then(() => {
+            res.send('done')
+        }).catch(() => {
+            res.send('error')
+        })
+    }catch(err){
+        res.send('error')
+    }
+}
+
 const submit = async (req,res) =>{
     const {page,note} = req.params
     try{
@@ -235,6 +249,9 @@ const report = async (req,res) => {
         }else if(page == 'transfer'){
             let records = await prisma.findOrderListTransfer()
             res.render('partials/report',{results:records})
+        }else if(page == 'receipt'){
+            let records = await prisma.findOrderReceiptList()
+            res.render('partials/reqRecReport',{results:records})
         }
     }catch(err){
         res.send('error')
@@ -242,10 +259,16 @@ const report = async (req,res) => {
 }
 
 const allReport = async (req,res) => {
+    const {page} = req.params
     try{
-        let genCode = await file.previousGetGenCode(req.session.whsCode,'./postNumber.txt')
-        let records = await prisma.findAllSent(genCode)
-        res.render('partials/report',{results:records})
+        if(page != 'receipt'){
+            let genCode = await file.previousGetGenCode(req.session.whsCode,'./postNumber.txt')
+            let records = await prisma.findAllSent(genCode)
+            res.render('partials/report',{results:records})
+        }else{
+            let records = await prisma.findAllReceipt()
+            res.render('partials/reqRecReport',{results:records})
+        }
     }catch(err){
         res.send('error')
     }
@@ -383,5 +406,6 @@ module.exports = {
     requestService,
     requestReceiptPage,
     syncReqReceiptData,
-    requestReceiptTable
+    requestReceiptTable,
+    saveReceiptValue
 }

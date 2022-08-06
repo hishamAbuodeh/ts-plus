@@ -1,0 +1,52 @@
+<div id="demo-modal" class="modal-v">
+  <div class="report__content">
+    <div id="closeDiv">
+      <button id="close">X</button>
+    </div>
+    <div class="container py-5">
+      <div class="row py-5">
+        <div class="col-lg-10 mx-auto">
+          <div class="card rounded shadow border-0">
+            <div class="card-body p-5 bg-white rounded">
+              <div class="table-responsive">
+                <table
+                  id="example"
+                  style="width: 100%"
+                  class="table table-striped table-bordered"
+                >
+                  <thead>
+                    <tr>
+                      <th>Item Code</th>
+                      <th>Item Name</th>
+                      <th>Barcode</th>
+                      <th>Receipt</th>
+                      <th>Ordered</th>
+                      <th>Returned</th>
+                      <th>Unit</th>
+                    </tr>
+                  </thead>
+                  <% if(results) { %>
+                  <tbody id="tbody">
+                    <% for(let i=0; i < results.length; i++){ const item =
+                    results[i] %>
+                    <tr class="trEfects">
+                      <td id="td-<%= item.id %>"><%= item.ItemCode %></td>
+                      <td id="td-<%= item.id %>"><%= item.ItemName %></td>
+                      <td id="td-<%= item.id %>"><%= item.CodeBars %></td>
+                      <td id="td-<%= item.id %>"><%= item.Order %></td>
+                      <td id="qty-<%= item.id %>"><%= item.OrderRequest %></td>
+                      <td id="diff-<%= item.id %>"><%= item.Difference %></td>
+                      <td id="uom-<%= item.id %>"><%= item.BuyUnitMsr %></td>
+                    </tr>
+                    <% }; %>
+                  </tbody>
+                  <% } %>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
