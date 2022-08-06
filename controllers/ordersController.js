@@ -26,10 +26,19 @@ const requestPage = async (req,res) => {
     }
 }
 
-const service = async (req,res) => {
+const requestService = async (req,res) => {
     if(req.session.loggedin)
     {
-        res.render('partials/chooseService')
+        res.render('partials/chooseService',{page:"request"})
+    }else{
+        res.redirect('/Login')
+    }
+}
+
+const transferService = async (req,res) => {
+    if(req.session.loggedin)
+    {
+        res.render('partials/chooseService',{page:"transfer"})
     }else{
         res.redirect('/Login')
     }
@@ -298,5 +307,6 @@ module.exports = {
     label,
     chooseFrom,
     saveChoose,
-    service
+    transferService,
+    requestService
 }

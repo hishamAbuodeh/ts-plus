@@ -9,10 +9,10 @@ body {
     align-items: center;
 }
 
-#rightDiv {
+.rightDiv {
     height: 35%;
     width: 20%;
-    margin-left: 20px;
+    margin-right: 40px;
     box-shadow: 0px 6px 18px 0px #585858;
     border-radius: 20px;
     display: flex;
@@ -22,15 +22,15 @@ body {
     text-decoration: none;
 }
 
-#rightDiv:hover {
+.rightDiv:hover {
     border: solid 2px black;
     background-color: #fff;
 }
 
-#leftDiv {
+.leftDiv {
     height: 35%;
     width: 20%;
-    margin-right: 20px;
+    margin-right: 40px;
     box-shadow: 0px 6px 18px 0px #585858;
     border-radius: 20px;
     display: flex;
@@ -40,7 +40,7 @@ body {
     text-decoration: none;
 }
 
-#leftDiv:hover {
+.leftDiv:hover {
     border: solid 2px black;
     background-color: #fff;
 }

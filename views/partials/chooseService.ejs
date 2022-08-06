@@ -15,14 +15,29 @@
     <script src="/js/jquery.min.js"></script>
     <script src="/js/transaction.js"></script>
     <script src="/js/chooseService.js"></script>
-    <title>Document</title>
+    <title>service</title>
 </head>
 <body id="body">
-    <a href="#" id="leftDiv">
-        عمل طلب تحويل
-    </a>
-    <a href="#" id="rightDiv">
-        عرض طلبات التحويل
-    </a>
+    <% if (page == "transfer") { %>
+        <a href="#" id="transferRequest" class="leftDiv">
+            عمل طلب تحويل
+        </a>
+        <a href="#" id="transferShow" class="rightDiv">
+            عرض طلبات التحويل
+        </a>
+        <a href="#" id="print" class="thirdDiv">
+            طباعة
+        </a>
+    <% } else { %>
+        <a href="#" id="requestOrder" class="leftDiv">
+            عمل طلب بضاعة
+        </a>
+        <a href="#" id="requestReceipt" class="rightDiv">
+            استلام طلب بضاعة
+        </a>
+    <% } %>
+    <div>
+        <%- include("modal") %>
+    </div>
 </body>
 </html>

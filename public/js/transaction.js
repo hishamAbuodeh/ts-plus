@@ -1,5 +1,4 @@
 let page = ""
-let isOpened;
 const goToPage = (page) => {
     $.get('/Routing').then(data => {
       $('#body').html(data)
@@ -21,7 +20,6 @@ $(document).ready(function() {
     if(currentPage == "transaction"){
         $.get('/Transaction/Check')
         .then((msg) => {
-            isOpened = msg.open
             if(msg.counting != '0'){
                 showModal('count')
             }
@@ -34,12 +32,8 @@ $(document).ready(function() {
         })
     }
     $('#request').on('click',()=>{
-        if(isOpened){
-            page = 'goRequest'
-            showPage(page)
-        }else{
-            console.log(isOpened)
-        }
+        const data = `<div><a style="color: white;" href="/Request" id="goOpenRequest">press</a></div>`
+        goDirect('goOpenRequest',data)
     })
     $('#receipt').on('click',()=>{
         const data = `<div><a style="color: white;" href="/Receipt" id="goReceipt">press</a></div>`
