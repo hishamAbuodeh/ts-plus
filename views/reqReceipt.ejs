@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/transaction.css" />
+    <link rel="stylesheet" href="/css/cards.css" />
+    <link rel="stylesheet" href="/css/routing.css"/>
+    <link rel="stylesheet" href="/css/modal.css"/>
+    <link rel="stylesheet" href="/css/sync.css"/>
+    <link rel="stylesheet" href="/css/netError.css"/>
+    <link rel="stylesheet" href="/css/success.css"/>
+    <link rel="stylesheet" href="/css/choose.css"/>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/transaction.js"></script>
+    <script src="/js/chooseFrom.js"></script>
+    <title>Receipt</title>
+</head>
+<body class="bodyClass" id="body">
+    <div id="innerChoose">
+        <div id="div" style="width:60%;display: flex;justify-content: flex-end;align-items: center;">
+            <label style="margin-right: 5px;font-size: 25px;">
+              اختر : 
+            </label>
+            <select id="select-0" style="width: 53%;">
+                <% for (let i = 0; i < data.length; i++) { item = data[i] %>
+                    <option><%= item.GenCode %></option>
+                <% } %>
+            </select>
+          </div>
+        <button class="btu">Enter</button>
+    </div>
+    <div>
+        <%- include("partials/modal") %>
+    </div>
+</body>
+</html>

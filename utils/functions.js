@@ -7,6 +7,9 @@ const file = require('./readAndWriteFiles')
 // enviroment variables
 const USERS_TABLE = process.env.USERS_TABLE
 const USERS_WHS_TABLE = process.env.USERS_WHS_TABLE
+const SQL_REQUEST_TRANSFER_PROCEDURE = process.env.SQL_REQUEST_TRANSFER_PROCEDURE
+const SQL_RECEIVING_RETURNPO_PROCEDURE = process.env.SQL_RECEIVING_RETURNPO_PROCEDURE
+const SQL_RECEIVINGPO_PROCEDURE = process.env.SQL_RECEIVINGPO_PROCEDURE
 
 const toggleRequestButton = (requestDay,requestHour) => {
     const loggedDay = new Date().toLocaleString('en-us', {  weekday: 'long' });
@@ -152,11 +155,17 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
                 console.log(err)
                 reject()
             }
-            let warehousefrom
+            let warehousefrom;
+            let warehouseTo;
             if(page == "transfer"){
                 warehousefrom = rec.Warehousefrom
-            }else{
+                warehouseTo = rec.WhsCode
+            }else if(page == "request"){
                 warehousefrom = rec.ListName == 'Consumable'? '104' : '102';
+                warehouseTo = rec.WhsCode
+            }else{
+                warehousefrom = rec.WhsCode
+                warehouseTo = rec.ListName == 'Consumable'? '104' : '102';
             }
             pool.request()
             .input("ItemCode",rec.ItemCode)
@@ -168,7 +177,7 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
             .input("MaxStock",rec.MaxStock)
             .input("Price",rec.Price)
             .input("BuyUnitMsr",rec.BuyUnitMsr)
-            .input("WhsCode",rec.WhsCode)
+            .input("WhsCode",warehouseTo)
             .input("WhsName",rec.WhsName)
             .input("CodeBars",rec.CodeBars)
             .input("ConvFactor",rec.ConvFactor)
@@ -178,7 +187,7 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
             .input("warehousefrom",warehousefrom)
             .input("UserName",userName)
             .input("Note",note)
-            .execute("Sp_Add_StocktransferRequest",(err,result) => {
+            .execute(SQL_REQUEST_TRANSFER_PROCEDURE,(err,result) => {
                 if(err){
                     console.log('excute',err)
                     reject()
@@ -229,7 +238,7 @@ const startReturnTransaction = async (pool,rec,userName,arr,length,note,genCode)
             .input("RecQty",rec.Order)
             .input("userName",userName)
             .input("Note",note)
-            .execute("SP_ReceivingReturnPO",(err,result) => {
+            .execute(SQL_RECEIVING_RETURNPO_PROCEDURE,(err,result) => {
                 if(err){
                     console.log('excute',err)
                     reject()
@@ -366,7 +375,7 @@ const startPOtransaction = async (pool,rec,userName,arr,length) => {
             .input("OpenQty",rec.OpenQty)
             .input("RecQty",rec.Order)
             .input("username",userName)
-            .execute("SP_ReceivingPO",(err,result) => {
+            .execute(SQL_RECEIVINGPO_PROCEDURE,(err,result) => {
                 if(err){
                     console.log('excute',err)
                     reject()

@@ -31,6 +31,6 @@ $(document).ready(() => {
         }
     })
     $('#requestReceipt').on('click',() => {
-        
+        goToPage('goRequestReceipt')
     })
 })

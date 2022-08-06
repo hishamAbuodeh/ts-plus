@@ -26,6 +26,32 @@ const requestPage = async (req,res) => {
     }
 }
 
+const requestReceiptPage = async (req,res) => {
+    if(req.session.loggedin)
+    {
+        prisma.getGenCodeLocal().then(results => {
+            res.render('reqReceipt',{data:results})
+        }).catch(err => {
+            res.render('error')
+        });
+    }else{
+        res.redirect('/Login')
+    }
+}
+
+const requestReceiptTable = async (req,res) => {
+    if(req.session.loggedin)
+    {
+        prisma.getSavedLocal().then(results => {
+            res.render('receiptGenCode',{data:results})
+        }).catch(err => {
+            res.render('error')
+        });
+    }else{
+        res.redirect('/Login')
+    }
+}
+
 const requestService = async (req,res) => {
     if(req.session.loggedin)
     {
@@ -67,6 +93,52 @@ const chooseFrom = async (req,res) => {
         }).catch(err => {
             res.render('partials/error')
         });
+    }else{
+        res.redirect('/Login')
+    }
+}
+
+const syncReqReceiptData = async(req,res) => {
+    const {genCode} = req.params
+    if(req.session.loggedin)
+    {
+        const data = await prisma.findAllSaved(genCode)
+        if(data){
+            const mappedData = data.map(rec => {
+                return {
+                    id:rec.id,
+                    ItemCode:rec.ItemCode,
+                    ItemName:rec.ItemName,
+                    ListNum:rec.ListNum,
+                    ListName:rec.ListName,
+                    OnHand:rec.OnHand,
+                    MinStock:rec.MinStock,
+                    MaxStock:rec.MaxStock,
+                    Price:rec.Price,
+                    BuyUnitMsr:rec.BuyUnitMsr,
+                    WhsCode:rec.WhsCode,
+                    WhsName:rec.WhsName,
+                    CodeBars:rec.CodeBars,
+                    ConvFactor:rec.ConvFactor,
+                    Warehousefrom:rec.Warehousefrom,
+                    OrderRequest:rec.Order,
+                    Difference:rec.Order,
+                    GenCode:rec.GenCode,
+                }
+            })
+            prisma.deleteAllInReqReceipt().then(() => {
+                prisma.createTable(mappedData).then(() => {
+                    res.send('done')
+                }).catch(() => {
+                    res.send('error')
+                })
+            }).catch(() => {
+                res.send('error')
+            })
+        }else{
+            res.send('error')
+        }
+        
     }else{
         res.redirect('/Login')
     }
@@ -308,5 +380,8 @@ module.exports = {
     chooseFrom,
     saveChoose,
     transferService,
-    requestService
+    requestService,
+    requestReceiptPage,
+    syncReqReceiptData,
+    requestReceiptTable
 }

@@ -210,6 +210,59 @@ const findAll = async(genCode) => {
     }
 }
 
+const deleteAllInReqReceipt = async() => {
+    return new Promise((resolve,reject) => {
+        prisma.requestReceiptItems.deleteMany()
+            .catch((e) => {
+                console.log(e)
+                reject()
+            })
+            .finally(async () => {
+                await prisma.$disconnect()
+                resolve()
+            })
+    })
+}
+
+const createTable = async(data) => {
+    return new Promise((resolve,reject) => {
+        createRequestReceiptItems(data)
+        .catch((e) => {
+            console.log(e)
+            reject()
+        })
+        .finally(async () => {
+            await prisma.$disconnect()
+            resolve()
+        })
+    })
+}
+
+const createRequestReceiptItems = async(data) => {
+    return await prisma.requestReceiptItems.createMany({
+        data,
+        skipDuplicates: true,
+    })
+}
+
+const findAllSaved = async(gencode) => {
+    const records = await prisma.rquestOrderhistory.findMany({
+        orderBy: [
+            {
+              createdAt: 'desc',
+            }
+        ],
+        where:{
+            GenCode: gencode
+        }
+    })
+    if(records.length > 0){
+        return records
+    }else{
+        return
+    }
+}
+
 const findAllSent = async(genCode) => {
     const records = await prisma.rquestOrderhistory.findMany({
         where: {
@@ -652,6 +705,66 @@ const getDataLocal = async (whs) =>{
     })
 }
 
+const getGenCodeLocal = async () =>{
+    return new Promise((resolve,reject) => {
+        try{
+            const results = getAllGencodes()
+                            .catch((e) => {
+                                console.log(e)
+                                reject()
+                            })
+                            .finally(async () => {
+                                await prisma.$disconnect()
+                            })
+            resolve(results)
+        }catch(err){
+            reject();
+        }
+    })
+}
+
+const getSavedLocal = async () =>{
+    return new Promise((resolve,reject) => {
+        try{
+            const results = getAllReqReceRec()
+                            .catch((e) => {
+                                console.log(e)
+                                reject()
+                            })
+                            .finally(async () => {
+                                await prisma.$disconnect()
+                            })
+            resolve(results)
+        }catch(err){
+            reject();
+        }
+    })
+}
+
+const getAllReqReceRec = async() => {
+    return await prisma.requestReceiptItems.findMany()
+}
+
+const getAllGencodes = async () => {
+    return await prisma.rquestOrderhistory.groupBy({
+        by: ['GenCode'],
+        orderBy:[
+            {
+              GenCode: 'desc',
+            }
+        ],
+        where:{
+            OR:[
+                {Warehousefrom: '102'},
+                {Warehousefrom: '102'}
+            ],
+            AND:{
+                Status:"approved"
+            }
+        }
+      })
+}
+
 const getDataAllInReturn = async () =>{
     return new Promise((resolve,reject) => {
         try{
@@ -931,5 +1044,10 @@ module.exports = {
     findReturnList,
     updateReturnStatus,
     transferToReturnHes,
-    findAllSentReturn
+    findAllSentReturn,
+    getGenCodeLocal,
+    findAllSaved,
+    createTable,
+    deleteAllInReqReceipt,
+    getSavedLocal
 }

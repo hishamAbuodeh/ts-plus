@@ -34,6 +34,31 @@ model requestItems {
     updatedAt DateTime @updatedAt
 }
 
+model requestReceiptItems {
+    id Int @id @unique
+    ItemCode String @unique
+    ItemName String
+    ListNum Int
+    ListName String
+    OnHand Decimal @db.Decimal(10,6)
+    MinStock Decimal @db.Decimal(10,6)
+    MaxStock Decimal @db.Decimal(10,6)
+    Price Decimal @db.Decimal(10,6)
+    BuyUnitMsr String @default("Piece")
+    WhsCode String
+    WhsName String
+    CodeBars String @default("no bar code")
+    ConvFactor Decimal @db.Decimal(10,6)
+    Warehousefrom String @default("")
+    OrderRequest Decimal @db.Decimal(10,6)
+    Order Decimal @db.Decimal(10,6) @default(0)
+    Difference Decimal @db.Decimal(10,6)
+    Status String @default("pending")
+    GenCode String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
 model rquestOrderhistory {
     id Int @id @default(autoincrement())
     ItemCode String
