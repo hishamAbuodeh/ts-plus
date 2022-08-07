@@ -20,6 +20,12 @@ const validate = async (req,res) => {
             const whsCode = await functions.getWhs(username)
             if(whsCode){
                 req.session.whsCode = whsCode[0].WhsCode
+                req.session.open = functions.checkOpenDays(whsCode[0].OpenDays)
+                req.session.supplierName = whsCode[0].SupplierName
+                req.session.supplierEmail = whsCode[0].SupplierEmail
+                req.session.supervisorName = whsCode[0].SupervisorName
+                req.session.supervisorEmail = whsCode[0].SupervisorEmail
+                req.session.countingAvailable = whsCode[0].CountingAvailable
                 res.send({msg : 'validate'})
             }else{
                 res.send({msg: 'error'})

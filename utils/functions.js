@@ -7,6 +7,9 @@ const file = require('./readAndWriteFiles')
 // enviroment variables
 const USERS_TABLE = process.env.USERS_TABLE
 const USERS_WHS_TABLE = process.env.USERS_WHS_TABLE
+const SQL_REQUEST_TRANSFER_PROCEDURE = process.env.SQL_REQUEST_TRANSFER_PROCEDURE
+const SQL_RECEIVING_RETURNPO_PROCEDURE = process.env.SQL_RECEIVING_RETURNPO_PROCEDURE
+const SQL_RECEIVINGPO_PROCEDURE = process.env.SQL_RECEIVINGPO_PROCEDURE
 
 const toggleRequestButton = (requestDay,requestHour) => {
     const loggedDay = new Date().toLocaleString('en-us', {  weekday: 'long' });
@@ -66,6 +69,8 @@ const getAndSaveData = async (whs,page,value) => {
                 msg = hana.getItems(whs).then(results => {
                     return prisma.createReturnRecords(results)
                 })
+            }else if(page == "goCount"){
+                msg = 'done'
             }
             resolve(msg)
         }).then((msg) => {
@@ -87,13 +92,35 @@ const sendRequestOrder = async (records,userName,page,note) => {
                 const arr = []
                 records.forEach(rec => {
                     if(rec.Status == 'pending'){
-                        startTransaction(pool,rec,userName,arr,length,page,note)
-                        .then(() => {
-                            resolve()
-                        })
-                        .catch((err) => {
-                            reject()
-                        })
+                        if(page != "receipt"){
+                            startTransaction(pool,rec,userName,arr,length,page,note)
+                            .then(() => {
+                                resolve()
+                            })
+                            .catch((err) => {
+                                reject()
+                            })
+                        }else{
+                            if(parseInt(rec.Difference) != 0){
+                                startTransaction(pool,rec,userName,arr,length,page,note)
+                                .then(() => {
+                                    resolve()
+                                })
+                                .catch((err) => {
+                                    reject()
+                                })
+                            }else{
+                                prisma.updateReqRecStatus(rec.id,arr)
+                                .then(() => {
+                                    if(arr.length == length){
+                                        resolve();
+                                    }
+                                })
+                                .catch(err => {
+                                    reject()
+                                })
+                            }
+                        }
                     }else{
                         arr.push('added')
                         if(arr.length == length){
@@ -150,11 +177,21 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
                 console.log(err)
                 reject()
             }
-            let warehousefrom
+            let warehousefrom;
+            let warehouseTo;
+            let order;
             if(page == "transfer"){
                 warehousefrom = rec.Warehousefrom
-            }else{
+                warehouseTo = rec.WhsCode
+                order = rec.Order
+            }else if(page == "request"){
                 warehousefrom = rec.ListName == 'Consumable'? '104' : '102';
+                warehouseTo = rec.WhsCode
+                order = rec.Order
+            }else if(page == "receipt"){
+                warehousefrom = rec.WhsCode
+                warehouseTo = rec.ListName == 'Consumable'? '104' : '102';
+                order = rec.Difference
             }
             pool.request()
             .input("ItemCode",rec.ItemCode)
@@ -166,17 +203,17 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
             .input("MaxStock",rec.MaxStock)
             .input("Price",rec.Price)
             .input("BuyUnitMsr",rec.BuyUnitMsr)
-            .input("WhsCode",rec.WhsCode)
+            .input("WhsCode",warehouseTo)
             .input("WhsName",rec.WhsName)
             .input("CodeBars",rec.CodeBars)
             .input("ConvFactor",rec.ConvFactor)
-            .input("QtyOrders",rec.Order)
+            .input("QtyOrders",order)
             .input("GenCode",rec.GenCode)
             .input("createdAt",rec.createdAt)
             .input("warehousefrom",warehousefrom)
             .input("UserName",userName)
             .input("Note",note)
-            .execute("Sp_Add_StocktransferRequest",(err,result) => {
+            .execute(SQL_REQUEST_TRANSFER_PROCEDURE,(err,result) => {
                 if(err){
                     console.log('excute',err)
                     reject()
@@ -187,16 +224,29 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
                         reject()
                     }
                     console.log("Transaction committed.");
-                    prisma.updateStatus(rec.id,arr)
-                    .then(() => {
-                        if(arr.length == length){
-                            pool.close();
-                            resolve();
-                        }
-                    })
-                    .catch(err => {
-                        reject()
-                    })
+                    if(page != "receipt"){
+                        prisma.updateStatus(rec.id,arr)
+                        .then(() => {
+                            if(arr.length == length){
+                                pool.close();
+                                resolve();
+                            }
+                        })
+                        .catch(err => {
+                            reject()
+                        })
+                    }else{
+                        prisma.updateReqRecStatus(rec.id,arr)
+                        .then(() => {
+                            if(arr.length == length){
+                                pool.close();
+                                resolve();
+                            }
+                        })
+                        .catch(err => {
+                            reject()
+                        })
+                    }
                 });
             })
         })
@@ -227,7 +277,7 @@ const startReturnTransaction = async (pool,rec,userName,arr,length,note,genCode)
             .input("RecQty",rec.Order)
             .input("userName",userName)
             .input("Note",note)
-            .execute("SP_ReceivingReturnPO",(err,result) => {
+            .execute(SQL_RECEIVING_RETURNPO_PROCEDURE,(err,result) => {
                 if(err){
                     console.log('excute',err)
                     reject()
@@ -364,7 +414,7 @@ const startPOtransaction = async (pool,rec,userName,arr,length) => {
             .input("OpenQty",rec.OpenQty)
             .input("RecQty",rec.Order)
             .input("username",userName)
-            .execute("SP_ReceivingPO",(err,result) => {
+            .execute(SQL_RECEIVINGPO_PROCEDURE,(err,result) => {
                 if(err){
                     console.log('excute',err)
                     reject()
@@ -391,6 +441,28 @@ const startPOtransaction = async (pool,rec,userName,arr,length) => {
     })
 }
 
+const checkOpenDays = (days) => {
+    const arabToNum = {
+        "الاحد" : 0,
+        "الاثنين" : 1,
+        "الثلاثاء" : 2,
+        "الاربعاء" : 3,
+        "الخميس" : 4,
+        "الجمعة" : 5,
+        "السبت" : 6,
+    }
+    const arr = days.split('-')
+    let open = false
+    arr.forEach((day) => {
+        const num = arabToNum[day]
+        const today = new Date().getDay()
+        if(num == today){
+            open = true
+        }
+    })
+    return open
+}
+
 module.exports = {
     toggleRequestButton,
     getUser,
@@ -403,4 +475,5 @@ module.exports = {
     syncPOData,
     sendPOtoSQL,
     sendReturnItems,
+    checkOpenDays
 }

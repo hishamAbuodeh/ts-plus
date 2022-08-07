@@ -26,6 +26,50 @@ const requestPage = async (req,res) => {
     }
 }
 
+const requestReceiptPage = async (req,res) => {
+    if(req.session.loggedin)
+    {
+        prisma.getGenCodeLocal().then(results => {
+            res.render('reqReceipt',{data:results})
+        }).catch(err => {
+            res.render('error')
+        });
+    }else{
+        res.redirect('/Login')
+    }
+}
+
+const requestReceiptTable = async (req,res) => {
+    if(req.session.loggedin)
+    {
+        prisma.getSavedLocal().then(results => {
+            res.render('receiptGenCode',{data:results})
+        }).catch(err => {
+            res.render('error')
+        });
+    }else{
+        res.redirect('/Login')
+    }
+}
+
+const requestService = async (req,res) => {
+    if(req.session.loggedin)
+    {
+        res.render('partials/chooseService',{page:"request"})
+    }else{
+        res.redirect('/Login')
+    }
+}
+
+const transferService = async (req,res) => {
+    if(req.session.loggedin)
+    {
+        res.render('partials/chooseService',{page:"transfer"})
+    }else{
+        res.redirect('/Login')
+    }
+}
+
 const chooseFrom = async (req,res) => {
     if(req.session.loggedin)
     {
@@ -40,15 +84,61 @@ const chooseFrom = async (req,res) => {
                         results:arr,
                         match 
                     }
-                    res.render('whsFrom',{data})
+                    res.render('partials/whsFrom',{data})
                 }
                 start()
             }else{
-                res.render('error')
+                res.render('partials/error')
             }
         }).catch(err => {
-            res.render('transaction')
+            res.render('partials/error')
         });
+    }else{
+        res.redirect('/Login')
+    }
+}
+
+const syncReqReceiptData = async(req,res) => {
+    const {genCode} = req.params
+    if(req.session.loggedin)
+    {
+        const data = await prisma.findAllSaved(genCode)
+        if(data){
+            const mappedData = data.map(rec => {
+                return {
+                    id:rec.id,
+                    ItemCode:rec.ItemCode,
+                    ItemName:rec.ItemName,
+                    ListNum:rec.ListNum,
+                    ListName:rec.ListName,
+                    OnHand:rec.OnHand,
+                    MinStock:rec.MinStock,
+                    MaxStock:rec.MaxStock,
+                    Price:rec.Price,
+                    BuyUnitMsr:rec.BuyUnitMsr,
+                    WhsCode:rec.WhsCode,
+                    WhsName:rec.WhsName,
+                    CodeBars:rec.CodeBars,
+                    ConvFactor:rec.ConvFactor,
+                    Warehousefrom:rec.Warehousefrom,
+                    OrderRequest:rec.Order,
+                    Difference:rec.Order,
+                    GenCode:rec.GenCode,
+                }
+            })
+            prisma.deleteAllInReqReceipt().then(() => {
+                prisma.createTable(mappedData).then(() => {
+                    res.send('done')
+                }).catch(() => {
+                    res.send('error')
+                })
+            }).catch(() => {
+                res.send('error')
+            })
+        }else{
+            res.send('error')
+        }
+        
     }else{
         res.redirect('/Login')
     }
@@ -101,6 +191,20 @@ const saveOrderValue = async (req,res) => {
     }
 }
 
+const saveReceiptValue = async (req,res) => {
+    try{
+        const {id,value,diffValue} = req.params
+        prisma.updateReqReceipt(id,value,diffValue)
+        .then(() => {
+            res.send('done')
+        }).catch(() => {
+            res.send('error')
+        })
+    }catch(err){
+        res.send('error')
+    }
+}
+
 const submit = async (req,res) =>{
     const {page,note} = req.params
     try{
@@ -109,6 +213,8 @@ const submit = async (req,res) =>{
             records = await prisma.findOrderList()
         }else if(page == 'transfer'){
             records = await prisma.findOrderListTransfer()
+        }else if(page == 'receipt'){
+            records = await prisma.findOrderReceiptList()
         }
         if(records.length > 0){
             functions.sendRequestOrder(records,req.session.username,page,note)
@@ -123,7 +229,17 @@ const submit = async (req,res) =>{
                     }
                     transfer()
                 }
-                start()
+                if(page != 'receipt'){
+                    start()
+                }else if(page == 'receipt'){
+                    prisma.deleteAllInReqReceipt().then(() => {
+                        records.forEach(rec => {
+                            const id = rec.id
+                            const order = rec.Order
+                            prisma.updateinHestoricalOrder(id,order)
+                        })
+                    })
+                }
             })
             .catch(err => {
                 res.send('error')
@@ -145,6 +261,9 @@ const report = async (req,res) => {
         }else if(page == 'transfer'){
             let records = await prisma.findOrderListTransfer()
             res.render('partials/report',{results:records})
+        }else if(page == 'receipt'){
+            let records = await prisma.findOrderReceiptList()
+            res.render('partials/reqRecReport',{results:records})
         }
     }catch(err){
         res.send('error')
@@ -152,10 +271,16 @@ const report = async (req,res) => {
 }
 
 const allReport = async (req,res) => {
+    const {page,genCode} = req.params
     try{
-        let genCode = await file.previousGetGenCode(req.session.whsCode,'./postNumber.txt')
-        let records = await prisma.findAllSent(genCode)
-        res.render('partials/report',{results:records})
+        if(page != 'receipt'){
+            let genCode = await file.previousGetGenCode(req.session.whsCode,'./postNumber.txt')
+            let records = await prisma.findAllSent(genCode)
+            res.render('partials/report',{results:records})
+        }else{
+            let records = await prisma.findAllReceipt(genCode)
+            res.render('partials/reqRecAllReport',{results:records})
+        }
     }catch(err){
         res.send('error')
     }
@@ -193,13 +318,14 @@ const createSuggest = async (req,res) => {
         const order = rec.Order
         const id = rec.id
         const convFac = rec.ConvFactor
-        if(order == 0){
-            let value = min - onHand
+        const suggQty = rec.SuggQty
+        if((order == 0) && ((min - onHand) > 0)){
+            let value = suggQty
             if(value > 0){
-                if(min % convFac == 0){
-                    value = min
+                if(suggQty % convFac == 0){
+                    value = suggQty
                 }else{
-                    value = parseInt(min) + (parseInt(convFac) - parseInt(min % convFac))
+                    value = parseFloat(suggQty) + (parseFloat(convFac) - parseFloat(suggQty % convFac))
                 }
                 new Promise((resolve,reject) => {
                     prisma.updateSuggest(id,value,true)
@@ -287,5 +413,11 @@ module.exports = {
     removeSuggest,
     label,
     chooseFrom,
-    saveChoose
+    saveChoose,
+    transferService,
+    requestService,
+    requestReceiptPage,
+    syncReqReceiptData,
+    requestReceiptTable,
+    saveReceiptValue
 }

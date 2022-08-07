@@ -210,10 +210,77 @@ const findAll = async(genCode) => {
     }
 }
 
+const deleteAllInReqReceipt = async() => {
+    return new Promise((resolve,reject) => {
+        prisma.requestReceiptItems.deleteMany()
+            .catch((e) => {
+                console.log(e)
+                reject()
+            })
+            .finally(async () => {
+                await prisma.$disconnect()
+                resolve()
+            })
+    })
+}
+
+const createTable = async(data) => {
+    return new Promise((resolve,reject) => {
+        createRequestReceiptItems(data)
+        .catch((e) => {
+            console.log(e)
+            reject()
+        })
+        .finally(async () => {
+            await prisma.$disconnect()
+            resolve()
+        })
+    })
+}
+
+const createRequestReceiptItems = async(data) => {
+    return await prisma.requestReceiptItems.createMany({
+        data,
+        skipDuplicates: true,
+    })
+}
+
+const findAllSaved = async(gencode) => {
+    const records = await prisma.rquestOrderhistory.findMany({
+        orderBy: [
+            {
+              createdAt: 'desc',
+            }
+        ],
+        where:{
+            GenCode: gencode
+        }
+    })
+    if(records.length > 0){
+        return records
+    }else{
+        return
+    }
+}
+
 const findAllSent = async(genCode) => {
     const records = await prisma.rquestOrderhistory.findMany({
         where: {
             GenCode : genCode
+        }
+    })
+    if(records.length > 0){
+        return records
+    }else{
+        return
+    }
+}
+
+const findAllReceipt = async(genCode) => {
+    const records = await prisma.rquestOrderhistory.findMany({
+        where: {
+            Status:"confirmed",
+            GenCode:genCode
         }
     })
     if(records.length > 0){
@@ -347,6 +414,17 @@ const findOrderListTransfer = async() => {
     })
 }
 
+const findOrderReceiptList = async() => {
+    return await prisma.requestReceiptItems.findMany()
+    .catch((e) => {
+        console.log(e)
+        return
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
 const deleteAll = async (genCode) => {
     await prisma.requestItems.deleteMany({
         where:{
@@ -404,6 +482,32 @@ const update = async (id,value) => {
             await prisma.$disconnect()
             resolve()
         })
+    })
+}
+
+const updateReqReceipt = async (id,value,diffValue) => {
+    return new Promise((resolve,reject) => {
+        updateExistReqReceiptRecord(id,value,diffValue)
+        .catch((e) => {
+            console.log(e)
+            reject()
+        })
+        .finally(async () => {
+            await prisma.$disconnect()
+            resolve()
+        })
+    })
+}
+
+const updateExistReqReceiptRecord = async (recordID,value,diffValue) => {
+    await prisma.requestReceiptItems.update({
+        where:{
+            id : parseInt(recordID)
+        },
+        data : {
+            Order: value != null? parseFloat(value) : 0,
+            Difference: diffValue != null? parseFloat(diffValue) : 0
+        }
     })
 }
 
@@ -504,6 +608,8 @@ const createNewRequestRecord = async (record,genCode,id,page) => {
           ItemName: record.ItemName != null? record.ItemName : undefined,
           ListNum: record.ListNum != null? record.ListNum : undefined,
           ListName: record.ListName != null? record.ListName : undefined,
+          AvgDaily: record.AvgDaily != null? record.AvgDaily : undefined,
+          SuggQty: record.SuggQty != null? record.SuggQty : undefined,
           OnHand: record.OnHand != null? record.OnHand : undefined,
           MinStock: record.MinStock != null? record.MinStock : undefined,
           MaxStock: record.MaxStock != null? record.MaxStock : undefined,
@@ -564,6 +670,39 @@ const updateRecordStatus = async (recordID) => {
     })
 }
 
+const updateinHestoricalOrder = async (id,order) => {
+    updateTransferToHes(id,order)
+    .catch((e) => {
+        console.log(e)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
+const updateTransferToHes = async (recordID,order) => {
+    return await prisma.rquestOrderhistory.update({
+        where:{
+            id : parseInt(recordID),
+        },
+        data : {
+            Status: "confirmed",
+            Order:order
+        }
+    })
+}
+
+const updateReqRecRecordStatus = async (recordID) => {
+    await prisma.requestReceiptItems.update({
+        where:{
+            id : parseInt(recordID)
+        },
+        data : {
+            Status: "sent",
+        }
+    })
+}
+
 const updateRetRecordStatus = async (recordID) => {
     await prisma.returnItems.update({
         where:{
@@ -589,6 +728,21 @@ const updatePOrecStatus = async (recordID,status) => {
 const updateStatus = async (id,arr) => {
     return new Promise((resolve,reject) => {
         updateRecordStatus(id)
+        .catch((e) => {
+            console.log(e)
+            reject()
+        })
+        .finally(async () => {
+            await prisma.$disconnect()
+            arr.push('added')
+            resolve()
+        })
+    })
+}
+
+const updateReqRecStatus = async (id,arr) => {
+    return new Promise((resolve,reject) => {
+        updateReqRecRecordStatus(id)
         .catch((e) => {
             console.log(e)
             reject()
@@ -648,6 +802,66 @@ const getDataLocal = async (whs) =>{
             reject();
         }
     })
+}
+
+const getGenCodeLocal = async () =>{
+    return new Promise((resolve,reject) => {
+        try{
+            const results = getAllGencodes()
+                            .catch((e) => {
+                                console.log(e)
+                                reject()
+                            })
+                            .finally(async () => {
+                                await prisma.$disconnect()
+                            })
+            resolve(results)
+        }catch(err){
+            reject();
+        }
+    })
+}
+
+const getSavedLocal = async () =>{
+    return new Promise((resolve,reject) => {
+        try{
+            const results = getAllReqReceRec()
+                            .catch((e) => {
+                                console.log(e)
+                                reject()
+                            })
+                            .finally(async () => {
+                                await prisma.$disconnect()
+                            })
+            resolve(results)
+        }catch(err){
+            reject();
+        }
+    })
+}
+
+const getAllReqReceRec = async() => {
+    return await prisma.requestReceiptItems.findMany()
+}
+
+const getAllGencodes = async () => {
+    return await prisma.rquestOrderhistory.groupBy({
+        by: ['GenCode'],
+        orderBy:[
+            {
+              GenCode: 'desc',
+            }
+        ],
+        where:{
+            OR:[
+                {Warehousefrom: '102'},
+                {Warehousefrom: '102'}
+            ],
+            AND:{
+                Status:"approved"
+            }
+        }
+      })
 }
 
 const getDataAllInReturn = async () =>{
@@ -929,5 +1143,15 @@ module.exports = {
     findReturnList,
     updateReturnStatus,
     transferToReturnHes,
-    findAllSentReturn
+    findAllSentReturn,
+    getGenCodeLocal,
+    findAllSaved,
+    createTable,
+    deleteAllInReqReceipt,
+    getSavedLocal,
+    updateReqReceipt,
+    findOrderReceiptList,
+    findAllReceipt,
+    updateReqRecStatus,
+    updateinHestoricalOrder
 }

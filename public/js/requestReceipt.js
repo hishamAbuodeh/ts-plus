@@ -1,12 +1,10 @@
-let page;
-let option = ""
+let page = "receipt";
 let note= ""
-let minmumOrder;
-let closeOrder;
+let genCode;
 $(function () {
   $(document).ready(function () {
     $("#example").DataTable();
-    page = $("thead")[0].id;
+    genCode = $('title')[0].id
     try {
       document.getElementById("tbody").addEventListener("click", (e) => {
         const fullID = e.path[0].id;
@@ -58,18 +56,8 @@ $(function () {
       logOut();
     }
   });
-  // $("#select-0").on("click", () => {
-  //   selectFrom('#select-0')
-  // });
-  $("#suggestion").on("click", (e) => {
-    const txt = $("#suggestion p")[0].innerHTML.trim();
-    if (txt == "Suggestion") {
-      showModal('waiting')
-      createSuggest();
-    } else {
-      showModal('waiting')
-      undoSuggest();
-    }
+  $("#close1").on("click", (e) => {
+    showGenCodes()
   });
 });
 
@@ -101,55 +89,36 @@ const save = (id, input, previousVal,lastValue) => {
     alert("ينبغي تحديد كمية الطلب قبل الحفظ");
   } else {
     value = trim(value);
-    const checked = check(value, id);
-    if (checked) {
+    const check = checkValue(value,id)
+    if(check){
+      const diffValue = calculateDiff(value,id);
       if (value != 0) {
-        const multi = checkMulti(value, id);
-        if (multi) {
-          $.post(`/Order/Save/${id}/${value}`).then((msg) => {
-            if (msg == "error") {
-              alert(
-                "IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم"
-              );
-              input.val("");
-            } else {
-              if (page == "request") {
-                tr.addClass("active-input");
-                tr.removeClass("hide");
-                tr.css("background-color", "green");
-              } else if (page == "transfer") {
-                const fromWhs = $(`#select-0`)[0].value;
-                if(fromWhs != ""){
-                  tr.addClass("active-input");
-                  tr.removeClass("hide");
-                  tr.css("background-color", "green");
-                }else{
-                  tr.addClass("semi-active");
-                  tr.removeClass("hide");
-                  tr.css("background-color", "#ffd861");
-                }
-              }
-            }
-          });
-        } else {
-          const conv = $(`#conv${id}`)[0].innerHTML;
-          const uom = $(`#uom-${id}`)[0].innerHTML;
-          closeOrder = getCloseOrder(value,conv)
-          alert(`الكمية يجب ان تكون من مضاعفات (${conv} ${uom}) اقرب كمية هي ${closeOrder}`);
-          input.val("");
-        }
+        $.post(`/Order/Receipt/${id}/${value}/${diffValue}`).then((msg) => {
+          if (msg == "error") {
+            alert(
+              "IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم"
+            );
+            input.val("");
+          } else {
+            $(`#diff-${id}`)[0].innerHTML = diffValue
+            tr.addClass("active-input");
+            tr.removeClass("hide");
+            tr.css("background-color", "green");
+          }
+        });
       } else {
         if (previousVal) {
           setOrderValueZero(id);
         }
         input.val("");
       }
-    } else {
+    }else{
       if (previousVal) {
         setOrderValueZero(id);
       }
-      alert(`(${minmumOrder} - Max) الكمية يجب ان تكون بين`);
       input.val("");
+      const qty = $(`#qty-${id}`)[0].innerHTML
+      alert(`الكمية يجب ان تكون بين 0 - ${qty}`);
     }
   }
   return;
@@ -165,51 +134,24 @@ const trim = (value) => {
   return parseFloat(newStr);
 };
 
-const check = (value, id) => {
-  const min = $(`#min-${id}`);
-  const max = $(`#max-${id}`);
-  const onHand = $(`#onHand-${id}`);
-  const minValue = min[0].innerHTML;
-  const maxValue = max[0].innerHTML;
-  const onHandValue = onHand[0].innerHTML;
-  let minOrder = (minValue - onHandValue) <= 0? 1 : (minValue - onHandValue)
-  const conv = $(`#conv${id}`)[0].innerHTML != 0 ? $(`#conv${id}`)[0].innerHTML : minOrder;
-  if (minOrder % conv != 0) {
-    minOrder = minOrder + (conv - minOrder % conv)
-  }
-  minmumOrder = minOrder
-  if ((value <= maxValue) & (value >= minOrder)) {
-    return true;
-  } else {
-    return false;
-  }
-};
-
-const checkMulti = (value, id) => {
-  const conv = $(`#conv${id}`)[0].innerHTML != 0 ? $(`#conv${id}`)[0].innerHTML : value;
-  if (value % conv == 0) {
-    return true;
-  } else {
-    return false;
-  }
-};
-
-const getCloseOrder = (value,conValue) => {
-  const firstClose = value + (conValue - value % conValue)
-  let seconClose;
-  if(value > conValue){
-    seconClose = value - (value % conValue)
+const checkValue = (value,id) => {
+  const qty = $(`#qty-${id}`)[0].innerHTML
+  if(value <= qty && value >= 0){
+    return true
   }else{
-    seconClose = firstClose
+    return
   }
-  if(seconClose < 0){
-    seconClose = firstClose
-  }
-  return Math.abs(firstClose - value) <= Math.abs(value- seconClose)? firstClose : seconClose
+}
+
+const calculateDiff = (value,id) => {
+  const qty = $(`#qty-${id}`)[0].innerHTML
+  return qty - value
 }
 
 const setOrderValueZero = async (id) => {
-  $.post(`/Order/Save/${id}/0`).then((msg) => {
+  const qty = $(`#qty-${id}`)[0].innerHTML
+  $(`#diff-${id}`)[0].innerHTML = qty
+  $.post(`/Order/Receipt/${id}/0/${qty}`).then((msg) => {
     if (msg == "error") {
       alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
     }
@@ -217,7 +159,6 @@ const setOrderValueZero = async (id) => {
 };
 
 const tryToSubmit = () => {
-  $("body").attr("style", "height:100%");
   showModal("submit");
   $.post(`/Order/Submit/${page}/${note}`).then((msg) => {
     if (msg == "done") {
@@ -225,7 +166,6 @@ const tryToSubmit = () => {
       setTimeout(() => {
         hideModal("submit");
         $("#tbody").empty();
-        $("body").attr("style", "height:100%");
         setTimeout(() => {
           showModal("success");
           setTimeout(() => {
@@ -304,6 +244,15 @@ const changeModalCont = (newContent, oldConten) => {
   showModal(newContent);
 };
 
+const showGenCodes = () => {
+  $.get("/Routing").then((data) => {
+    $("#body").html(data);
+    $(document).ready(function () {
+      document.getElementById("goRequestReceipt").click();
+    });
+  });
+};
+
 const showTransaction = () => {
   $.get("/Routing").then((data) => {
     $("#body").html(data);
@@ -340,7 +289,7 @@ const showReport = () => {
 };
 
 const showAllReports = () => {
-  $.get(`/Order/AllReports/${page}/genCode`).then((results) => {
+  $.get(`/Order/AllReports/${page}/${genCode}`).then((results) => {
     if (results == "error") {
       alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
     } else {
@@ -378,70 +327,3 @@ const inputOrder = (id) => {
   }
   document.getElementById(`input-${id}`).addEventListener('keydown',tabFunc)
 };
-
-const selectFrom = (fullID) => {
-  const optValue = $(fullID)[0].value
-  if(optValue != option){
-    option = optValue
-    $.post(`/Order/From?value=${optValue}`).then((results) => {
-      if (results == "error") {
-        alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
-      } else {
-        changeStatus(optValue)
-      }
-    });
-  }
-}
-
-const changeStatus = (value) => {
-  if(value == ""){
-    const rows = $('.active-input')
-    if(rows.length > 0){
-      for(let i = 0; i < rows.length; i++){
-        const row = rows[i]
-        row.classList.add("semi-active")
-        row.classList.remove("active-input")
-        row.style.backgroundColor = "#ffd861";
-      }
-    }
-  }else{
-    const rows = $('.semi-active')
-    if(rows.length > 0){
-      for(let i = 0; i < rows.length; i++){
-        const row = rows[i]
-        row.classList.add("active-input")
-        row.classList.remove("semi-active")
-        row.style.backgroundColor = "green";
-      }
-    }
-  }
-}
-
-const createSuggest = () => {
-  $.post("/Order/Create-Suggestios").then((msg) => {
-    reloadPage("Undo",msg)
-  })
-}
-
-const undoSuggest = () => {
-  $.post("/Order/Remove-Suggestios").then((msg) => {
-    reloadPage("Suggestion",msg)
-  })
-}
-
-const reloadPage = (value,msg) => {
-  new Promise((resolve,reject) => {
-    $.post(`/Order/Label/${value}`).then(msg => {
-      resolve()
-    })
-  }).then(() => {
-    if(msg == 'error'){
-      alert('بعض المواد لم يتم تعديلها لوجود خطا داخلي')
-      setTimeout(() => {
-        location.reload();
-      },1000)
-    }else{
-      location.reload();
-    }
-  })
-}

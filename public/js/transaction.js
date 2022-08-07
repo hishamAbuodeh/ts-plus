@@ -1,5 +1,4 @@
 let page = ""
-
 const goToPage = (page) => {
     $.get('/Routing').then(data => {
       $('#body').html(data)
@@ -11,16 +10,43 @@ const goToPage = (page) => {
     });
   }
 
+  const goDirect = (page,data) => {
+    $('#body').html(data)
+    document.getElementById(`${page}`).click();
+  }
+
 $(document).ready(function() {
+    const currentPage = $('title')[0].text
+    if(currentPage == "transaction"){
+        $.get('/Transaction/Check')
+        .then((msg) => {
+            if(msg.counting != '0'){
+                showModal('count')
+            }
+        })
+        .fail(() => {
+            alert("خطأ داخلي الرجاء");
+            setTimeout(() => {
+                location.reload();
+            },1000)
+        })
+    }
     $('#request').on('click',()=>{
-        page = 'goRequest'
-        showPage(page)
+        const data = `<div><a style="color: white;" href="/Request" id="goOpenRequest">press</a></div>`
+        goDirect('goOpenRequest',data)
     })
     $('#receipt').on('click',()=>{
-        goToPage('goReceipt')
+        const data = `<div><a style="color: white;" href="/Receipt" id="goReceipt">press</a></div>`
+        goDirect('goReceipt',data)
     })
     $('#transfer').on('click',()=>{
-        goToPage('goChoose')
+        const data = `<div><a style="color: white;" href="/Transfer" id="goOpenTransfer">press</a></div>`
+        goDirect('goOpenTransfer',data)
+    })
+    $('.start_count').on('click',()=>{
+        hideModal('count')
+        page = 'goCount'
+        showPage(page)
     })
     $('#return').on('click',()=>{
         page = 'goReturn'
@@ -85,6 +111,12 @@ const showModal = (type) => {
         case "confirm":
             $(".modal_confirm_container").attr("style", "display:flex;");
             break;
+        case "count":
+            $(".modal_counting_container").attr("style", "display:flex;");
+            break;
+        case "net-error4":
+            $('.modal_netError_container4').attr('style','display:flex;');
+            break;
         default:
             break;
     }
@@ -120,6 +152,12 @@ const hideModal = (type) => {
             break;
         case "confirm":
             $(".modal_confirm_container").attr("style", "display:none;");
+            break;
+        case "count":
+            $(".modal_counting_container").attr("style", "display:none;");
+            break;
+        case "net-error4":
+            $('.modal_netError_container4').attr('style','display:none;');
             break;
         default:
             break;

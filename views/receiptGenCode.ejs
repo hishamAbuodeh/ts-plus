@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/request.css"/>
+    <link rel="stylesheet" href="/css/routing.css"/>
     <link rel="stylesheet" href="/table/bootstrap.min.css"/>
     <link rel="stylesheet" href="/table/font-awesome.min.css"/>
     <link rel="stylesheet" href="/table/dataTables.bootstrap4.min.css"/>
@@ -18,30 +19,30 @@
     <script src="/table/bootstrap.bundle.min.js"></script>
     <script src="/table/jquery.dataTables.min.js"></script>
     <script src="/table/dataTables.bootstrap4.min.js"></script>
-    <script src="/js/orders.js"></script>
-    <title>Request</title>
+    <script src="/js/requestReceipt.js"></script>
+    <title id="<%= data[0].GenCode %>">Request</title>
 </head>
 <body id="body" style="position: relative;height:100%;">
     <div>
-        <%- include("partials/table",{info : {results : data.results, page : 'request'}}) %>
+        <%- include("partials/reqRecTable",{info : {results : data}}) %>
     </div>
     <div class="otterDiv">
         <div class="btuLoctaion">
-            <botton id="suggestion" class="btu"><p class="para" style="padding-left: 10px;padding-right: 10px;"><%= data.value %></p></botton>
             <botton id="report" class="btu" style="margin-left: 30px;"><p class="para">
-                <% if (data.results) {
-                    %> Report <%
-                 }else{
-                     %> Sent report <%
-                 } %>
+                <% if (data) { %> 
+                    Report 
+                <% }else{ %> 
+                    Sent report 
+                <% } %>
             </p></botton>
             <botton id="submitOrder" class="btu" style="margin-left: 30px;"><p class="para">Submit</p></botton>
+            <botton id='close1' class="btu" style="margin-left: 30px;"><p class="para">close</p></botton>
             <botton id='exit' class="btu" style="margin-left: 30px;"><p class="para">
-                <% if (data.results) {
-                   %> Exit <%
-                }else{
-                    %> Log out <%
-                } %>
+                <% if (data) { %> 
+                    Exit 
+                <% }else{ %> 
+                    Log out 
+                <% } %>
             </p></botton>
         </div>
     </div>

@@ -38,6 +38,7 @@ const transactionRouter = require('./routes/transactionRoute')
 const transferRouter = require('./routes/transferRoute')
 const receiptRouter = require('./routes/receiptRoute')
 const returnRouter = require('./routes/returnRoute')
+const countRouter = require('./routes/countRoute')
 
 // use middleware routes
 app.use('/',mainRouter);
@@ -47,3 +48,4 @@ app.use('/Transaction',transactionRouter);
 app.use('/Transfer',transferRouter);
 app.use('/Receipt',receiptRouter);
 app.use('/Return',returnRouter);
+app.use('/Count',countRouter);
