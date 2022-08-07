@@ -92,13 +92,35 @@ const sendRequestOrder = async (records,userName,page,note) => {
                 const arr = []
                 records.forEach(rec => {
                     if(rec.Status == 'pending'){
-                        startTransaction(pool,rec,userName,arr,length,page,note)
-                        .then(() => {
-                            resolve()
-                        })
-                        .catch((err) => {
-                            reject()
-                        })
+                        if(page != "receipt"){
+                            startTransaction(pool,rec,userName,arr,length,page,note)
+                            .then(() => {
+                                resolve()
+                            })
+                            .catch((err) => {
+                                reject()
+                            })
+                        }else{
+                            if(parseInt(rec.Difference) != 0){
+                                startTransaction(pool,rec,userName,arr,length,page,note)
+                                .then(() => {
+                                    resolve()
+                                })
+                                .catch((err) => {
+                                    reject()
+                                })
+                            }else{
+                                prisma.updateReqRecStatus(rec.id,arr)
+                                .then(() => {
+                                    if(arr.length == length){
+                                        resolve();
+                                    }
+                                })
+                                .catch(err => {
+                                    reject()
+                                })
+                            }
+                        }
                     }else{
                         arr.push('added')
                         if(arr.length == length){
@@ -157,15 +179,19 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
             }
             let warehousefrom;
             let warehouseTo;
+            let order;
             if(page == "transfer"){
                 warehousefrom = rec.Warehousefrom
                 warehouseTo = rec.WhsCode
+                order = rec.Order
             }else if(page == "request"){
                 warehousefrom = rec.ListName == 'Consumable'? '104' : '102';
                 warehouseTo = rec.WhsCode
+                order = rec.Order
             }else if(page == "receipt"){
                 warehousefrom = rec.WhsCode
                 warehouseTo = rec.ListName == 'Consumable'? '104' : '102';
+                order = rec.Difference
             }
             pool.request()
             .input("ItemCode",rec.ItemCode)
@@ -181,7 +207,7 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
             .input("WhsName",rec.WhsName)
             .input("CodeBars",rec.CodeBars)
             .input("ConvFactor",rec.ConvFactor)
-            .input("QtyOrders",rec.Order)
+            .input("QtyOrders",order)
             .input("GenCode",rec.GenCode)
             .input("createdAt",rec.createdAt)
             .input("warehousefrom",warehousefrom)
@@ -198,16 +224,29 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
                         reject()
                     }
                     console.log("Transaction committed.");
-                    prisma.updateStatus(rec.id,arr)
-                    .then(() => {
-                        if(arr.length == length){
-                            pool.close();
-                            resolve();
-                        }
-                    })
-                    .catch(err => {
-                        reject()
-                    })
+                    if(page != "receipt"){
+                        prisma.updateStatus(rec.id,arr)
+                        .then(() => {
+                            if(arr.length == length){
+                                pool.close();
+                                resolve();
+                            }
+                        })
+                        .catch(err => {
+                            reject()
+                        })
+                    }else{
+                        prisma.updateReqRecStatus(rec.id,arr)
+                        .then(() => {
+                            if(arr.length == length){
+                                pool.close();
+                                resolve();
+                            }
+                        })
+                        .catch(err => {
+                            reject()
+                        })
+                    }
                 });
             })
         })

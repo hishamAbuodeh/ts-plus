@@ -1,8 +1,10 @@
 let page = "receipt";
 let note= ""
+let genCode;
 $(function () {
   $(document).ready(function () {
     $("#example").DataTable();
+    genCode = $('title')[0].id
     try {
       document.getElementById("tbody").addEventListener("click", (e) => {
         const fullID = e.path[0].id;
@@ -53,6 +55,9 @@ $(function () {
     } else {
       logOut();
     }
+  });
+  $("#close1").on("click", (e) => {
+    showGenCodes()
   });
 });
 
@@ -284,7 +289,7 @@ const showReport = () => {
 };
 
 const showAllReports = () => {
-  $.get(`/Order/AllReports/${page}`).then((results) => {
+  $.get(`/Order/AllReports/${page}/${genCode}`).then((results) => {
     if (results == "error") {
       alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
     } else {

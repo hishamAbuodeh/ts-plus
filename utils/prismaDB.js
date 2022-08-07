@@ -276,10 +276,11 @@ const findAllSent = async(genCode) => {
     }
 }
 
-const findAllReceipt = async() => {
+const findAllReceipt = async(genCode) => {
     const records = await prisma.rquestOrderhistory.findMany({
         where: {
-            Status:"receipt"
+            Status:"confirmed",
+            GenCode:genCode
         }
     })
     if(records.length > 0){
@@ -669,6 +670,39 @@ const updateRecordStatus = async (recordID) => {
     })
 }
 
+const updateinHestoricalOrder = async (id,order) => {
+    updateTransferToHes(id,order)
+    .catch((e) => {
+        console.log(e)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
+const updateTransferToHes = async (recordID,order) => {
+    return await prisma.rquestOrderhistory.update({
+        where:{
+            id : parseInt(recordID),
+        },
+        data : {
+            Status: "confirmed",
+            Order:order
+        }
+    })
+}
+
+const updateReqRecRecordStatus = async (recordID) => {
+    await prisma.requestReceiptItems.update({
+        where:{
+            id : parseInt(recordID)
+        },
+        data : {
+            Status: "sent",
+        }
+    })
+}
+
 const updateRetRecordStatus = async (recordID) => {
     await prisma.returnItems.update({
         where:{
@@ -694,6 +728,21 @@ const updatePOrecStatus = async (recordID,status) => {
 const updateStatus = async (id,arr) => {
     return new Promise((resolve,reject) => {
         updateRecordStatus(id)
+        .catch((e) => {
+            console.log(e)
+            reject()
+        })
+        .finally(async () => {
+            await prisma.$disconnect()
+            arr.push('added')
+            resolve()
+        })
+    })
+}
+
+const updateReqRecStatus = async (id,arr) => {
+    return new Promise((resolve,reject) => {
+        updateReqRecRecordStatus(id)
         .catch((e) => {
             console.log(e)
             reject()
@@ -1102,5 +1151,7 @@ module.exports = {
     getSavedLocal,
     updateReqReceipt,
     findOrderReceiptList,
-    findAllReceipt
+    findAllReceipt,
+    updateReqRecStatus,
+    updateinHestoricalOrder
 }

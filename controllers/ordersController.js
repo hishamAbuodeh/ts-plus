@@ -213,6 +213,8 @@ const submit = async (req,res) =>{
             records = await prisma.findOrderList()
         }else if(page == 'transfer'){
             records = await prisma.findOrderListTransfer()
+        }else if(page == 'receipt'){
+            records = await prisma.findOrderReceiptList()
         }
         if(records.length > 0){
             functions.sendRequestOrder(records,req.session.username,page,note)
@@ -227,7 +229,17 @@ const submit = async (req,res) =>{
                     }
                     transfer()
                 }
-                start()
+                if(page != 'receipt'){
+                    start()
+                }else if(page == 'receipt'){
+                    prisma.deleteAllInReqReceipt().then(() => {
+                        records.forEach(rec => {
+                            const id = rec.id
+                            const order = rec.Order
+                            prisma.updateinHestoricalOrder(id,order)
+                        })
+                    })
+                }
             })
             .catch(err => {
                 res.send('error')
@@ -259,15 +271,15 @@ const report = async (req,res) => {
 }
 
 const allReport = async (req,res) => {
-    const {page} = req.params
+    const {page,genCode} = req.params
     try{
         if(page != 'receipt'){
             let genCode = await file.previousGetGenCode(req.session.whsCode,'./postNumber.txt')
             let records = await prisma.findAllSent(genCode)
             res.render('partials/report',{results:records})
         }else{
-            let records = await prisma.findAllReceipt()
-            res.render('partials/reqRecReport',{results:records})
+            let records = await prisma.findAllReceipt(genCode)
+            res.render('partials/reqRecAllReport',{results:records})
         }
     }catch(err){
         res.send('error')
