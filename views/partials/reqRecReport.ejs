@@ -19,9 +19,14 @@
                       <th>Item Code</th>
                       <th>Item Name</th>
                       <th>Barcode</th>
-                      <th>Receipt</th>
-                      <th>Ordered</th>
-                      <th>Returned</th>
+                      <% if(page == "receipt"){ %>
+                        <th>Receipt</th>
+                        <th>Ordered</th>
+                        <th>Returned</th>
+                      <% } else { %>
+                        <th>Deliver</th>
+                        <th>Ordered</th>
+                      <% } %>
                       <th>Unit</th>
                     </tr>
                   </thead>
@@ -35,7 +40,9 @@
                       <td id="td-<%= item.id %>"><%= item.CodeBars %></td>
                       <td id="td-<%= item.id %>"><%= item.Order %></td>
                       <td id="qty-<%= item.id %>"><%= item.OrderRequest %></td>
-                      <td id="diff-<%= item.id %>"><%= item.Difference %></td>
+                      <% if(page == "receipt"){ %>
+                        <td id="diff-<%= item.id %>"><%= item.Difference %></td>
+                        <% } %>
                       <td id="uom-<%= item.id %>"><%= item.BuyUnitMsr %></td>
                     </tr>
                     <% }; %>

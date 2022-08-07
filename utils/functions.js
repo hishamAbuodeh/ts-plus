@@ -7,6 +7,7 @@ const file = require('./readAndWriteFiles')
 // enviroment variables
 const USERS_TABLE = process.env.USERS_TABLE
 const USERS_WHS_TABLE = process.env.USERS_WHS_TABLE
+const REQUSET_TRANSFER_TABLE = process.env.REQUSET_TRANSFER_TABLE
 const SQL_REQUEST_TRANSFER_PROCEDURE = process.env.SQL_REQUEST_TRANSFER_PROCEDURE
 const SQL_RECEIVING_RETURNPO_PROCEDURE = process.env.SQL_RECEIVING_RETURNPO_PROCEDURE
 const SQL_RECEIVINGPO_PROCEDURE = process.env.SQL_RECEIVINGPO_PROCEDURE
@@ -42,6 +43,19 @@ const getWhs = async (username) => {
             return result.recordset;
         })
         return whsCode
+    }catch(err){
+        return
+    }
+}
+
+const getTransferReq = async (genCode) => {
+    try{
+        const pool = await sql.getSQL();
+        const user = await pool.request().query(`select * from ${REQUSET_TRANSFER_TABLE} where GenCode = '${genCode}' and SAP_Procces = 2`)
+        .then(result => {
+            return result.recordset;
+        })
+        return user
     }catch(err){
         return
     }
@@ -185,7 +199,7 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
                 warehousefrom = rec.Warehousefrom
                 warehouseTo = rec.WhsCode
                 order = rec.Order
-                sapProcess = 1
+                sapProcess = 2
             }else if(page == "request"){
                 warehousefrom = rec.ListName == 'Consumable'? '104' : '102';
                 warehouseTo = rec.WhsCode
@@ -468,6 +482,36 @@ const checkOpenDays = (days) => {
     return open
 }
 
+const saveTransferReq = async(results) => {
+    try{
+        return new Promise((resolve,reject) => {
+            const start = async () => {
+                let skip = false
+                const pervious = await prisma.getAllSavedDelivery()
+                if(pervious.length > 0){
+                    if(pervious[0].GenCode == results[0].GenCode){
+                        resolve(pervious)
+                        skip = true
+                    }
+                }
+                if(!skip){
+                    const saved = await prisma.saveAndGetDelivery(results)
+                    if(saved){
+                        resolve(saved)
+                    }else{
+                        reject()
+                    }
+                }
+            }
+            start()
+        }).catch(err => {
+            return 'error'
+        })
+    }catch(err){
+        return 'error'
+    } 
+}
+
 module.exports = {
     toggleRequestButton,
     getUser,
@@ -480,5 +524,7 @@ module.exports = {
     syncPOData,
     sendPOtoSQL,
     sendReturnItems,
-    checkOpenDays
+    checkOpenDays,
+    getTransferReq,
+    saveTransferReq
 }

@@ -968,6 +968,39 @@ const deleteAllPo = async () => {
     await prisma.receiptItems.deleteMany()
 }
 
+const saveAndGetDelivery = async (results) => {
+    return new Promise((resolve,reject) => {
+        deleteAllDelivery()
+        .catch((e) => {
+            console.log(e)
+            reject()
+        })
+        .finally(async () => {
+            await prisma.$disconnect()
+            resolve()
+        })
+    }).then(() => {
+        return saveAllDelivery(results)
+    })
+}
+
+const deleteAllDelivery = async () => {
+    await prisma.requestReceiptItems.deleteMany()
+}
+
+const saveAllDelivery = async (mappedData) => {
+    return prisma.requestReceiptItems.createMany({
+        data:mappedData,
+        skipDuplicates:true
+    })
+    .catch((e) => {
+        console.log(e)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
 const saveAllPo = async (results) => {
     const length = results.length
     const arr = []
@@ -1019,6 +1052,17 @@ const getAllSavedPOs = async () => {
     })
 }
 
+const getAllSavedDelivery = async () => {
+    return getAllDelivery()
+    .catch((e) => {
+        console.log(e)
+        return
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
 const createNewPORecord = async (record,id) => {
     try{
         await prisma.receiptItems.create({
@@ -1043,6 +1087,10 @@ const createNewPORecord = async (record,id) => {
 
 const getAllPOs = async () => {
     return await prisma.receiptItems.findMany()
+}
+
+const getAllDelivery = async () => {
+    return await prisma.requestReceiptItems.findMany()
 }
 
 const transferToReceHis = async (records) => {
@@ -1153,5 +1201,7 @@ module.exports = {
     findOrderReceiptList,
     findAllReceipt,
     updateReqRecStatus,
-    updateinHestoricalOrder
+    updateinHestoricalOrder,
+    getAllSavedDelivery,
+    saveAndGetDelivery
 }
