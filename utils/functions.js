@@ -180,18 +180,22 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
             let warehousefrom;
             let warehouseTo;
             let order;
+            let sapProcess;
             if(page == "transfer"){
                 warehousefrom = rec.Warehousefrom
                 warehouseTo = rec.WhsCode
                 order = rec.Order
+                sapProcess = 1
             }else if(page == "request"){
                 warehousefrom = rec.ListName == 'Consumable'? '104' : '102';
                 warehouseTo = rec.WhsCode
                 order = rec.Order
+                sapProcess = 0
             }else if(page == "receipt"){
                 warehousefrom = rec.WhsCode
                 warehouseTo = rec.ListName == 'Consumable'? '104' : '102';
                 order = rec.Difference
+                sapProcess = 0
             }
             pool.request()
             .input("ItemCode",rec.ItemCode)
@@ -213,6 +217,7 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
             .input("warehousefrom",warehousefrom)
             .input("UserName",userName)
             .input("Note",note)
+            .input("SAP_Procces",sapProcess)
             .execute(SQL_REQUEST_TRANSFER_PROCEDURE,(err,result) => {
                 if(err){
                     console.log('excute',err)
