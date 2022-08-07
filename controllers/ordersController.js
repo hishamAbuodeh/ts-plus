@@ -98,6 +98,16 @@ const chooseFrom = async (req,res) => {
     }
 }
 
+const genCodeOrderStatus = async(req,res) => { 
+    const {genCode} = req.params
+    if(req.session.loggedin)
+    {
+        res.send('open')
+    }else{
+        res.redirect('/Login')
+    }
+}
+
 const syncReqReceiptData = async(req,res) => {
     const {genCode} = req.params
     if(req.session.loggedin)
@@ -419,5 +429,6 @@ module.exports = {
     requestReceiptPage,
     syncReqReceiptData,
     requestReceiptTable,
-    saveReceiptValue
+    saveReceiptValue,
+    genCodeOrderStatus
 }

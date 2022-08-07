@@ -117,6 +117,9 @@ const showModal = (type) => {
         case "net-error4":
             $('.modal_netError_container4').attr('style','display:flex;');
             break;
+        case "net-error5":
+            $('.modal_netError_container5').attr('style','display:flex;');
+            break;
         default:
             break;
     }
@@ -158,6 +161,9 @@ const hideModal = (type) => {
             break;
         case "net-error4":
             $('.modal_netError_container4').attr('style','display:none;');
+            break;
+        case "net-error5":
+            $('.modal_netError_container5').attr('style','display:none;');
             break;
         default:
             break;
