@@ -21,7 +21,7 @@ $(document).ready(() => {
         goDirect('goDelivery',data)
     })
     $('#print').on('click',() => {
-       
+        goToPage('goPrint')
     })
     $('#requestOrder').on('click',() => {
         if(isOpened){

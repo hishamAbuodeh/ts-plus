@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/transaction.css" />
+    <link rel="stylesheet" href="/table/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/table/font-awesome.min.css"/>
+    <link rel="stylesheet" href="/table/dataTables.bootstrap4.min.css"/>
+    <link rel="stylesheet" href="/css/routing.css"/>
+    <link rel="stylesheet" href="/css/modal.css"/>
+    <link rel="stylesheet" href="/css/sync.css"/>
+    <link rel="stylesheet" href="/css/netError.css"/>
+    <link rel="stylesheet" href="/css/success.css"/>
+    <link rel="stylesheet" href="/css/choose.css"/>
+    <link rel="stylesheet" href="/css/spinner.css"/>
+    <script src="/table/jquery-3.3.1.slim.min.js"></script>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/table/bootstrap.bundle.min.js"></script>
+    <script src="/table/jquery.dataTables.min.js"></script>
+    <script src="/table/dataTables.bootstrap4.min.js"></script>
+    <script src="/js/transaction.js"></script>
+    <script src="/js/print.js"></script>
+    <title>Print</title>
+</head>
+<body class="bodyClass" id="body">
+    <div id="innerChoose1">
+        <div id="div" style="width: 33%;display: flex;justify-content: flex-end;align-items: center;flex-direction: column;">
+            <label style="width: 100%;margin-right: 5px;font-size: 25px;padding-bottom: 10px;">
+              طباعة طلب تحويل : 
+            </label>
+            <select id="select-0" style="width: 100%;">
+                <% for (let i = 0; i < data.length; i++) { item = data[i] %>
+                    <option><%= item.GenCode %></option>
+                <% } %>
+            </select>
+        </div>
+        <button class="btu1" id="selectBtu">Enter</button>
+    </div>
+    <div id="innerChoose2">
+        <div id="div" style="width: 33%;display: flex;justify-content: flex-end;align-items: center;flex-direction: column;">
+            <label style="width: 100%;margin-right: 5px;font-size: 25px;padding-bottom: 10px;">
+              طباعة تسليم بضاعة : 
+            </label>
+            <input id="input-0" type="text" style="width: 100%;height: 40px;" placeholder="Scan Barcode"></input>
+        </div>
+        <button class="btu1" id="inputBtu">Enter</button>
+    </div>
+    <div>
+        <%- include("partials/modal") %>
+    </div>
+    <div id="reportDiv"></div>
+</body>
+</html>

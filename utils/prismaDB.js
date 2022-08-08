@@ -854,6 +854,24 @@ const getGenCodeLocal = async () =>{
     })
 }
 
+const getGenCodeTransfer = async () =>{
+    return new Promise((resolve,reject) => {
+        try{
+            const results = getAllGencodes()
+                            .catch((e) => {
+                                console.log(e)
+                                reject()
+                            })
+                            .finally(async () => {
+                                await prisma.$disconnect()
+                            })
+            resolve(results)
+        }catch(err){
+            reject();
+        }
+    })
+}
+
 const getSavedLocal = async () =>{
     return new Promise((resolve,reject) => {
         try{
@@ -887,8 +905,32 @@ const getAllGencodes = async () => {
         where:{
             OR:[
                 {Warehousefrom: '102'},
-                {Warehousefrom: '102'}
+                {Warehousefrom: '104'}
             ],
+            AND:{
+                Status:"approved"
+            }
+        }
+      })
+}
+
+const getAllTransferGencodes = async () => {
+    return await prisma.rquestOrderhistory.groupBy({
+        by: ['GenCode'],
+        orderBy:[
+            {
+              GenCode: 'desc',
+            }
+        ],
+        where:{
+            Warehousefrom: {
+                not:'102'
+            },
+            AND:{
+                Warehousefrom: {
+                    not:'104'
+                }
+            },
             AND:{
                 Status:"approved"
             }
@@ -1237,5 +1279,7 @@ module.exports = {
     getAllSavedDelivery,
     saveAndGetDelivery,
     findAllDelivered,
-    addToDeliverHis
+    addToDeliverHis,
+    getGenCodeTransfer,
+    getAllTransferGencodes
 }

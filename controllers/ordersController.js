@@ -48,6 +48,65 @@ const deliveryPage = async (req,res) => {
     }
 }
 
+const printPage = async (req,res) => {
+    if(req.session.loggedin)
+    {
+        prisma.getAllTransferGencodes().then(results => {
+            res.render('print',{data:results})
+        }).catch(err => {
+            res.render('error')
+        });
+    }else{
+        res.redirect('/Login')
+    }
+}
+
+const printReport = async(req,res) => {
+    if(req.session.loggedin)
+    {
+        const {page,genCode} = req.params
+        let records;
+        let mappedData;
+        if(page == "request"){
+            records = await prisma.findAllSent(genCode)
+            mappedData = records.map(rec => {
+                return {
+                    ItemCode:rec.ItemCode,
+                    ItemName:rec.ItemName,
+                    CodeBars:rec.CodeBars,
+                    WarehouseFrom:rec.Warehousefrom,
+                    WarehouseTo:rec.WhsCode,
+                    Order:rec.Order,
+                    BuyUnitMsr:rec.BuyUnitMsr,
+                    GenCode:rec.GenCode,
+                }
+            })
+            res.render('partials/printTransfer',{results:mappedData,page})
+        }else{
+            records = await prisma.findAllDelivered(genCode)
+            if(records){
+                mappedData = records.map(rec => {
+                    return {
+                        ItemCode:rec.ItemCode,
+                        ItemName:rec.ItemName,
+                        CodeBars:rec.CodeBars,
+                        WarehouseFrom:rec.WhsCode,
+                        WarehouseTo:rec.WarehouseTo,
+                        Order:rec.Order,
+                        BuyUnitMsr:rec.BuyUnitMsr,
+                        GenCode:rec.GenCode,
+                    }
+                })
+                res.render('partials/printTransfer',{results:mappedData,page})
+            }else{
+                res.send('noData')
+            }
+        }
+    }else{
+        res.redirect('/Login')
+    }
+}
+
 const requestReceiptTable = async (req,res) => {
     if(req.session.loggedin)
     {
@@ -534,5 +593,7 @@ module.exports = {
     genCodeOrderStatus,
     deliveryPage,
     sync,
-    deliverSubmit
+    deliverSubmit,
+    printPage,
+    printReport
 }
