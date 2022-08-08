@@ -48,10 +48,10 @@ const getWhs = async (username) => {
     }
 }
 
-const getTransferReq = async (genCode) => {
+const getTransferReq = async (genCode,warehousefrom) => {
     try{
         const pool = await sql.getSQL();
-        const user = await pool.request().query(`select * from ${REQUSET_TRANSFER_TABLE} where GenCode = '${genCode}' and SAP_Procces = 2`)
+        const user = await pool.request().query(`select * from ${REQUSET_TRANSFER_TABLE} where GenCode = '${genCode}' and SAP_Procces = 2 and warehousefrom = '${warehousefrom}'`)
         .then(result => {
             return result.recordset;
         })
@@ -512,6 +512,61 @@ const saveTransferReq = async(results) => {
     } 
 }
 
+const submitDeliverToSQL = async(records) => {
+    return new Promise((resolve,reject) => {
+        const start = async() => {
+            const pool = await sql.getSQL()
+            const length = records.length
+            const arr = []
+            records.forEach(rec => {
+                if(rec.Status == 'pending'){
+                    sendDeliverRec(rec,arr,pool,length)
+                    .then(() => {
+                        if(arr.length == length){
+                            resolve()
+                        }
+                    })
+                    .catch(() => {
+                        reject()
+                    })
+                }else{
+                    arr.push('added')
+                    if(arr.length == length){
+                        resolve()
+                    }
+                }
+            })
+        }
+        start()
+    })
+}
+
+const sendDeliverRec = async(rec,arr,pool,length) => {
+    return new Promise((resolve,reject) => {
+        let queryStatment;
+        if(parseInt(rec.Order) != 0){
+            queryStatment = `update ${REQUSET_TRANSFER_TABLE} set QtyOrders = ${rec.Order} , SAP_Procces = 0 where ID = ${rec.id}`
+        }else{
+            queryStatment = `delete from ${REQUSET_TRANSFER_TABLE} where ID = ${rec.id}`
+        }
+        pool.request().query(queryStatment)
+        .then(result => {
+            console.log('table record updated')
+            prisma.updateReqRecStatus(rec.id,arr)
+            .then(() => {
+                if(arr.length == length){
+                    pool.close();
+                    resolve();
+                }
+            })
+            .catch(err => {
+                reject()
+            })
+        })
+    })
+
+}
+
 module.exports = {
     toggleRequestButton,
     getUser,
@@ -526,5 +581,6 @@ module.exports = {
     sendReturnItems,
     checkOpenDays,
     getTransferReq,
-    saveTransferReq
+    saveTransferReq,
+    submitDeliverToSQL
 }

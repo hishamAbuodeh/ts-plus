@@ -271,6 +271,40 @@ const submit = async (req,res) =>{
     }
 }
 
+const deliverSubmit = async (req,res) =>{
+    try{
+        let records = await prisma.findOrderReceiptList()
+        if(records.length > 0){
+            functions.submitDeliverToSQL(records)
+            .then(() => {
+                res.send('done')
+                prisma.deleteAllInReqReceipt()
+                const mappedResults = records.map(rec => {
+                    return {
+                        ItemCode: rec.ItemCode,
+                        ItemName: rec.ItemName,
+                        CodeBars: rec.CodeBars,
+                        WhsCode: rec.Warehousefrom,
+                        WarehouseTo: rec.WhsCode,
+                        Order: rec.Order,
+                        OrderRequest: rec.OrderRequest,
+                        BuyUnitMsr: rec.BuyUnitMsr,
+                        GenCode: rec.GenCode,
+                    }
+                })
+                prisma.addToDeliverHis(mappedResults)
+            })
+            .catch(() => {
+                res.send('error')
+            })
+        }else{
+            res.send('no data sent')
+        }
+    }catch(err){
+        res.send('error')
+    }
+}
+
 const report = async (req,res) => {
     const {page} = req.params
     try{
@@ -299,8 +333,11 @@ const allReport = async (req,res) => {
             let genCode = await file.previousGetGenCode(req.session.whsCode,'./postNumber.txt')
             let records = await prisma.findAllSent(genCode)
             res.render('partials/report',{results:records})
-        }else{
+        }else if(page == 'receipt'){
             let records = await prisma.findAllReceipt(genCode)
+            res.render('partials/reqRecAllReport',{results:records,page})
+        }else if(page == 'deliver'){
+            let records = await prisma.findAllDelivered(genCode)
             res.render('partials/reqRecAllReport',{results:records,page})
         }
     }catch(err){
@@ -428,7 +465,8 @@ const sync = async (req,res) => {
     {
         const {genCode} = req.params
         new Promise((resolve,reject) => {
-            const results = functions.getTransferReq(genCode)
+            const warehousefrom = req.session.whsCode
+            const results = functions.getTransferReq(genCode,warehousefrom)
             resolve(results)
         }).then((results) => {
             if(results.length > 0){
@@ -495,5 +533,6 @@ module.exports = {
     saveReceiptValue,
     genCodeOrderStatus,
     deliveryPage,
-    sync
+    sync,
+    deliverSubmit
 }

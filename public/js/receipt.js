@@ -273,7 +273,6 @@ const setOrderValueZero = async (id) => {
   };
 
   const tryToSubmit = () => {
-    console.log("submit")
     $("body").attr("style", "height:100%");
     showModal("submit");
     $.post(`/Receipt/Submit`).then((msg) => {

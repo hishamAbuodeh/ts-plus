@@ -2,9 +2,6 @@ let pageOption = 'docNum'
 const docNumDiv = `<div class="demo-container"><div class="demo-flex-spacer"></div><div class="webflow-style-input"><input class="input-po" type="text" placeholder="Scan Barcode"></input><button id="poNumBtu" type="submit">send</button></div></div>`
 const buttons  = `<div class="btuLoctaion"><botton id="report" class="btu"><p class="para">Report</p></botton><botton id="submitOrder" class="btu" style="margin-left: 30px;"><p class="para">Submit</p></botton><botton id='close1' class="btu" style="margin-left: 30px;"><p class="para">close</p></botton><botton id='exit' class="btu" style="margin-left: 30px;"><p class="para">Exit</p></botton></div>`
 let poNumber;
-let begin = new Date()
-begin = begin.toISOString().split('T')[0]
-begin = new Date(begin).toISOString();
 $(document).ready(() => {
     showDocNum() 
     $('.netError_accept2').on('click',()=>{
@@ -275,10 +272,9 @@ const setOrderValueZero = async (id) => {
   };
 
   const tryToSubmit = () => {
-    console.log("submit")
     $("body").attr("style", "height:100%");
     showModal("submit");
-    $.post(`/Transfer/Submit`).then((msg) => {
+    $.post(`/Transfer/Deliver/Submit`).then((msg) => {
       if (msg == "done") {
         setTimeout(() => {
           hideModal("submit");
@@ -308,7 +304,7 @@ const setOrderValueZero = async (id) => {
 
   const showAllReports = () => {
     let end= new Date().toISOString();
-    $.get(`/Transfer/AllReports/${poNumber}/${begin}/${end}`).then((results) => {
+    $.get(`/Order/AllReports/deliver/${poNumber}`).then((results) => {
       if (results == "error") {
         alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
       } else {

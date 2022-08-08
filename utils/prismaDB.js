@@ -86,6 +86,25 @@ const saveAllinReturn = async (mappedRecords) => {
     })
 }
 
+const addToDeliverHis = async (mappedRecords) => {
+    return new Promise((resolve,reject) => {
+        prisma.deliveredItemshistory.createMany({
+            data:mappedRecords,
+            skipDuplicates:true
+        })
+        .catch((e) => {
+            console.log(e)
+            reject()
+        })
+        .finally(async () => {
+            await prisma.$disconnect()
+            resolve()
+        })
+    }).then(() => {
+        return 'done'
+    })
+}
+
 const deleteAndcreate = async (recordSet,genCode,page) => {
     return new Promise((resolve,reject) => {
         const isExist = recordsExist(genCode)
@@ -280,6 +299,19 @@ const findAllReceipt = async(genCode) => {
     const records = await prisma.rquestOrderhistory.findMany({
         where: {
             Status:"confirmed",
+            GenCode:genCode
+        }
+    })
+    if(records.length > 0){
+        return records
+    }else{
+        return
+    }
+}
+
+const findAllDelivered = async(genCode) => {
+    const records = await prisma.deliveredItemshistory.findMany({
+        where: {
             GenCode:genCode
         }
     })
@@ -1203,5 +1235,7 @@ module.exports = {
     updateReqRecStatus,
     updateinHestoricalOrder,
     getAllSavedDelivery,
-    saveAndGetDelivery
+    saveAndGetDelivery,
+    findAllDelivered,
+    addToDeliverHis
 }
