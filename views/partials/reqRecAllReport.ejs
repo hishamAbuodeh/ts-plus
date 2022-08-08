@@ -19,7 +19,11 @@
                         <th>Item Code</th>
                         <th>Item Name</th>
                         <th>Barcode</th>
-                        <th>Receipt</th>
+                        <% if(page == "receipt"){ %>
+                          <th>Receipt</th>
+                        <% } else { %>
+                          <th>Delivered</th>
+                        <% } %>
                         <th>Unit</th>
                       </tr>
                     </thead>

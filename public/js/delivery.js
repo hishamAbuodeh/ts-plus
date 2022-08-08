@@ -1,10 +1,7 @@
 let pageOption = 'docNum'
-const docNumDiv = `<div class="demo-container"><div class="demo-flex-spacer"></div><div class="webflow-style-input"><input class="input-po" type="number" min="1" step="1" placeholder="Insert P.O Number"></input><button id="poNumBtu" type="submit">send</button></div></div>`
+const docNumDiv = `<div class="demo-container"><div class="demo-flex-spacer"></div><div class="webflow-style-input"><input class="input-po" type="text" placeholder="Scan Barcode"></input><button id="poNumBtu" type="submit">send</button></div></div>`
 const buttons  = `<div class="btuLoctaion"><botton id="report" class="btu"><p class="para">Report</p></botton><botton id="submitOrder" class="btu" style="margin-left: 30px;"><p class="para">Submit</p></botton><botton id='close1' class="btu" style="margin-left: 30px;"><p class="para">close</p></botton><botton id='exit' class="btu" style="margin-left: 30px;"><p class="para">Exit</p></botton></div>`
 let poNumber;
-let begin = new Date()
-begin = begin.toISOString().split('T')[0]
-begin = new Date(begin).toISOString();
 $(document).ready(() => {
     showDocNum() 
     $('.netError_accept2').on('click',()=>{
@@ -43,7 +40,7 @@ const showDocNum = () => {
 
 const showTable = async (number) => {
     showModal('request') 
-    $.post(`/Receipt/Sync/${number}`).then(msg => {
+    $.post(`/Transfer/Sync/${number}`).then(msg => {
         if(msg == 'error'){
             setTimeout(() => {
                 changeModalCont('net-error2','request');
@@ -179,8 +176,9 @@ const save = (id, input, previousVal) => {
       value = trim(value);
       const checked = check(value, id);
       if (checked) {
+        const diffValue = 0
         if (value != 0) {
-            $.post(`/Receipt/Save/${id}/${value}`).then((msg) => {
+            $.post(`/Order/Receipt/${id}/${value}/${diffValue}`).then((msg) => {
                 if (msg == "error") {
                   alert(
                     "IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم"
@@ -202,7 +200,7 @@ const save = (id, input, previousVal) => {
         if (previousVal) {
           setOrderValueZero(id);
         }
-        alert("(0 - Qty Receipt) الكمية يجب ان تكون بين");
+        alert("(0 - Ordered) الكمية يجب ان تكون بين");
         input.val("");
       }
     }
@@ -220,7 +218,7 @@ const trim = (value) => {
   };
 
   const check = (value, id) => {
-    const QtyRec = $(`#QtyRec-${id}`);
+    const QtyRec = $(`#qty-${id}`);
     const maxValue = QtyRec[0].innerHTML;
     if (value <= maxValue) {
       return true;
@@ -230,7 +228,8 @@ const trim = (value) => {
   };
 
 const setOrderValueZero = async (id) => {
-    $.post(`/Receipt/Save/${id}/0`).then((msg) => {
+  const qty = 0
+    $.post(`/Order/Receipt/${id}/0/${qty}`).then((msg) => {
       if (msg == "error") {
         alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
       }
@@ -257,7 +256,7 @@ const setOrderValueZero = async (id) => {
 
   const showReport = () => {
     setTimeout(() => {
-      $.get(`/Receipt/Report`).then((results) => {
+      $.get(`/Order/Report/deliver`).then((results) => {
         if (results == "error") {
           alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
         } else {
@@ -275,7 +274,7 @@ const setOrderValueZero = async (id) => {
   const tryToSubmit = () => {
     $("body").attr("style", "height:100%");
     showModal("submit");
-    $.post(`/Receipt/Submit`).then((msg) => {
+    $.post(`/Transfer/Deliver/Submit`).then((msg) => {
       if (msg == "done") {
         setTimeout(() => {
           hideModal("submit");
@@ -305,7 +304,7 @@ const setOrderValueZero = async (id) => {
 
   const showAllReports = () => {
     let end= new Date().toISOString();
-    $.get(`/Receipt/AllReports/${poNumber}/${begin}/${end}`).then((results) => {
+    $.get(`/Order/AllReports/deliver/${poNumber}`).then((results) => {
       if (results == "error") {
         alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
       } else {

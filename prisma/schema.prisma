@@ -81,6 +81,20 @@ model rquestOrderhistory {
     createdAt DateTime @default(now())
 }
 
+model deliveredItemshistory {
+    id Int @id @default(autoincrement())
+    ItemCode String
+    ItemName String
+    CodeBars String
+    WhsCode String
+    WarehouseTo String
+    Order Decimal @db.Decimal(10,6)
+    OrderRequest Decimal @db.Decimal(10,6)
+    Status String @default("deliverd")
+    BuyUnitMsr String
+    GenCode String
+}
+
 model receiptItems{
     id Int @id @unique
     ItemCode String

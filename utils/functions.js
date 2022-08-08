@@ -7,6 +7,7 @@ const file = require('./readAndWriteFiles')
 // enviroment variables
 const USERS_TABLE = process.env.USERS_TABLE
 const USERS_WHS_TABLE = process.env.USERS_WHS_TABLE
+const REQUSET_TRANSFER_TABLE = process.env.REQUSET_TRANSFER_TABLE
 const SQL_REQUEST_TRANSFER_PROCEDURE = process.env.SQL_REQUEST_TRANSFER_PROCEDURE
 const SQL_RECEIVING_RETURNPO_PROCEDURE = process.env.SQL_RECEIVING_RETURNPO_PROCEDURE
 const SQL_RECEIVINGPO_PROCEDURE = process.env.SQL_RECEIVINGPO_PROCEDURE
@@ -42,6 +43,19 @@ const getWhs = async (username) => {
             return result.recordset;
         })
         return whsCode
+    }catch(err){
+        return
+    }
+}
+
+const getTransferReq = async (genCode,warehousefrom) => {
+    try{
+        const pool = await sql.getSQL();
+        const user = await pool.request().query(`select * from ${REQUSET_TRANSFER_TABLE} where GenCode = '${genCode}' and SAP_Procces = 2 and warehousefrom = '${warehousefrom}'`)
+        .then(result => {
+            return result.recordset;
+        })
+        return user
     }catch(err){
         return
     }
@@ -180,18 +194,22 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
             let warehousefrom;
             let warehouseTo;
             let order;
+            let sapProcess;
             if(page == "transfer"){
                 warehousefrom = rec.Warehousefrom
                 warehouseTo = rec.WhsCode
                 order = rec.Order
+                sapProcess = 2
             }else if(page == "request"){
                 warehousefrom = rec.ListName == 'Consumable'? '104' : '102';
                 warehouseTo = rec.WhsCode
                 order = rec.Order
+                sapProcess = 0
             }else if(page == "receipt"){
                 warehousefrom = rec.WhsCode
                 warehouseTo = rec.ListName == 'Consumable'? '104' : '102';
                 order = rec.Difference
+                sapProcess = 0
             }
             pool.request()
             .input("ItemCode",rec.ItemCode)
@@ -213,6 +231,7 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
             .input("warehousefrom",warehousefrom)
             .input("UserName",userName)
             .input("Note",note)
+            .input("SAP_Procces",sapProcess)
             .execute(SQL_REQUEST_TRANSFER_PROCEDURE,(err,result) => {
                 if(err){
                     console.log('excute',err)
@@ -463,6 +482,91 @@ const checkOpenDays = (days) => {
     return open
 }
 
+const saveTransferReq = async(results) => {
+    try{
+        return new Promise((resolve,reject) => {
+            const start = async () => {
+                let skip = false
+                const pervious = await prisma.getAllSavedDelivery()
+                if(pervious.length > 0){
+                    if(pervious[0].GenCode == results[0].GenCode){
+                        resolve(pervious)
+                        skip = true
+                    }
+                }
+                if(!skip){
+                    const saved = await prisma.saveAndGetDelivery(results)
+                    if(saved){
+                        resolve(saved)
+                    }else{
+                        reject()
+                    }
+                }
+            }
+            start()
+        }).catch(err => {
+            return 'error'
+        })
+    }catch(err){
+        return 'error'
+    } 
+}
+
+const submitDeliverToSQL = async(records) => {
+    return new Promise((resolve,reject) => {
+        const start = async() => {
+            const pool = await sql.getSQL()
+            const length = records.length
+            const arr = []
+            records.forEach(rec => {
+                if(rec.Status == 'pending'){
+                    sendDeliverRec(rec,arr,pool,length)
+                    .then(() => {
+                        if(arr.length == length){
+                            resolve()
+                        }
+                    })
+                    .catch(() => {
+                        reject()
+                    })
+                }else{
+                    arr.push('added')
+                    if(arr.length == length){
+                        resolve()
+                    }
+                }
+            })
+        }
+        start()
+    })
+}
+
+const sendDeliverRec = async(rec,arr,pool,length) => {
+    return new Promise((resolve,reject) => {
+        let queryStatment;
+        if(parseInt(rec.Order) != 0){
+            queryStatment = `update ${REQUSET_TRANSFER_TABLE} set QtyOrders = ${rec.Order} , SAP_Procces = 0 where ID = ${rec.id}`
+        }else{
+            queryStatment = `delete from ${REQUSET_TRANSFER_TABLE} where ID = ${rec.id}`
+        }
+        pool.request().query(queryStatment)
+        .then(result => {
+            console.log('table record updated')
+            prisma.updateReqRecStatus(rec.id,arr)
+            .then(() => {
+                if(arr.length == length){
+                    pool.close();
+                    resolve();
+                }
+            })
+            .catch(err => {
+                reject()
+            })
+        })
+    })
+
+}
+
 module.exports = {
     toggleRequestButton,
     getUser,
@@ -475,5 +579,8 @@ module.exports = {
     syncPOData,
     sendPOtoSQL,
     sendReturnItems,
-    checkOpenDays
+    checkOpenDays,
+    getTransferReq,
+    saveTransferReq,
+    submitDeliverToSQL
 }

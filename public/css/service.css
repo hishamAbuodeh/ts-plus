@@ -27,6 +27,24 @@ body {
     background-color: #fff;
 }
 
+.thirdDiv {
+    height: 35%;
+    width: 20%;
+    margin-right: 40px;
+    box-shadow: 0px 6px 18px 0px #585858;
+    border-radius: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #ffeeba;
+    text-decoration: none;
+}
+
+.thirdDiv:hover {
+    border: solid 2px black;
+    background-color: #fff;
+}
+
 .leftDiv {
     height: 35%;
     width: 20%;

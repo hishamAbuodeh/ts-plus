@@ -81,6 +81,17 @@
     box-shadow: 0px 6px 18px -5px red;
   }
 
+  .netError_Content  button.netError_denied5 {
+    background-color: red;
+    border: none;
+    border-radius: 5px;
+    width: 200px;
+    padding: 14px;
+    font-size: 16px;
+    color: white;
+    box-shadow: 0px 6px 18px -5px red;
+  }
+
   .netError_Content  button.close_btu {
     background-color: red;
     border: none;
@@ -147,6 +158,16 @@
     box-shadow: 0px 6px 18px -5px green;
   }
 
+  .netError_Content  button.netError_accept5 {
+    background-color: green;
+    border: none;
+    border-radius: 5px;
+    width: 200px;
+    padding: 14px;
+    font-size: 16px;
+    color: white;
+    box-shadow: 0px 6px 18px -5px green;
+  }
 
   .netError_Content  button.confirm_btu {
     background-color: green;
@@ -203,6 +224,11 @@
   }
 
   .modal_netError_container4{
+    height: 100%;
+    width: 100%;
+  }
+
+  .modal_netError_container5{
     height: 100%;
     width: 100%;
   }

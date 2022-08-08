@@ -39,6 +39,15 @@ const requestReceiptPage = async (req,res) => {
     }
 }
 
+const deliveryPage = async (req,res) => {
+    if(req.session.loggedin)
+    {
+        res.render('deliveryTransfer')
+    }else{
+        res.redirect('/Login')
+    }
+}
+
 const requestReceiptTable = async (req,res) => {
     if(req.session.loggedin)
     {
@@ -93,6 +102,16 @@ const chooseFrom = async (req,res) => {
         }).catch(err => {
             res.render('partials/error')
         });
+    }else{
+        res.redirect('/Login')
+    }
+}
+
+const genCodeOrderStatus = async(req,res) => { 
+    const {genCode} = req.params
+    if(req.session.loggedin)
+    {
+        res.send('open')
     }else{
         res.redirect('/Login')
     }
@@ -252,6 +271,40 @@ const submit = async (req,res) =>{
     }
 }
 
+const deliverSubmit = async (req,res) =>{
+    try{
+        let records = await prisma.findOrderReceiptList()
+        if(records.length > 0){
+            functions.submitDeliverToSQL(records)
+            .then(() => {
+                res.send('done')
+                prisma.deleteAllInReqReceipt()
+                const mappedResults = records.map(rec => {
+                    return {
+                        ItemCode: rec.ItemCode,
+                        ItemName: rec.ItemName,
+                        CodeBars: rec.CodeBars,
+                        WhsCode: rec.Warehousefrom,
+                        WarehouseTo: rec.WhsCode,
+                        Order: rec.Order,
+                        OrderRequest: rec.OrderRequest,
+                        BuyUnitMsr: rec.BuyUnitMsr,
+                        GenCode: rec.GenCode,
+                    }
+                })
+                prisma.addToDeliverHis(mappedResults)
+            })
+            .catch(() => {
+                res.send('error')
+            })
+        }else{
+            res.send('no data sent')
+        }
+    }catch(err){
+        res.send('error')
+    }
+}
+
 const report = async (req,res) => {
     const {page} = req.params
     try{
@@ -263,7 +316,10 @@ const report = async (req,res) => {
             res.render('partials/report',{results:records})
         }else if(page == 'receipt'){
             let records = await prisma.findOrderReceiptList()
-            res.render('partials/reqRecReport',{results:records})
+            res.render('partials/reqRecReport',{results:records,page})
+        }else if(page == 'deliver'){
+            let records = await prisma.findOrderReceiptList()
+            res.render('partials/reqRecReport',{results:records,page})
         }
     }catch(err){
         res.send('error')
@@ -273,13 +329,16 @@ const report = async (req,res) => {
 const allReport = async (req,res) => {
     const {page,genCode} = req.params
     try{
-        if(page != 'receipt'){
+        if(page != 'receipt' && page != 'deliver'){
             let genCode = await file.previousGetGenCode(req.session.whsCode,'./postNumber.txt')
             let records = await prisma.findAllSent(genCode)
             res.render('partials/report',{results:records})
-        }else{
+        }else if(page == 'receipt'){
             let records = await prisma.findAllReceipt(genCode)
-            res.render('partials/reqRecAllReport',{results:records})
+            res.render('partials/reqRecAllReport',{results:records,page})
+        }else if(page == 'deliver'){
+            let records = await prisma.findAllDelivered(genCode)
+            res.render('partials/reqRecAllReport',{results:records,page})
         }
     }catch(err){
         res.send('error')
@@ -401,6 +460,58 @@ const label = async(req,res) => {
     res.send('done')
 }
 
+const sync = async (req,res) => {
+    if(req.session.loggedin)
+    {
+        const {genCode} = req.params
+        new Promise((resolve,reject) => {
+            const warehousefrom = req.session.whsCode
+            const results = functions.getTransferReq(genCode,warehousefrom)
+            resolve(results)
+        }).then((results) => {
+            if(results.length > 0){
+                const start = async () => {
+                    const mappedData = results.map(rec => {
+                        return {
+                            id:rec.ID,
+                            ItemCode:rec.ItemCode,
+                            ItemName:rec.ItemName,
+                            ListNum:rec.ListNum,
+                            ListName:rec.ListName,
+                            OnHand:rec.OnHand,
+                            MinStock:rec.MinStock,
+                            MaxStock:rec.MaxStock,
+                            Price:rec.Price,
+                            BuyUnitMsr:rec.BuyUnitMsr,
+                            WhsCode:rec.WhsCode,
+                            WhsName:rec.WhsName,
+                            CodeBars:rec.CodeBars,
+                            ConvFactor:rec.ConvFactor,
+                            Warehousefrom:rec.warehousefrom,
+                            OrderRequest:rec.QtyOrders,
+                            Difference:rec.QtyOrders,
+                            GenCode:rec.GenCode,
+                        }
+                    })
+                    const data = await functions.saveTransferReq(mappedData)
+                    if(data){
+                        res.render('partials/reqRecTable',{info:{results:mappedData,page:"deliver"}})
+                    }else{
+                        res.send('error')
+                    }
+                }
+                start()
+            }else{
+                res.send('not found')
+            }
+        }).catch(() => {
+            res.send('error')
+        })
+    }else{
+        res.redirect('/Login')
+    }
+}
+
 module.exports = {
     requestPage,
     saveOrderValue,
@@ -419,5 +530,9 @@ module.exports = {
     requestReceiptPage,
     syncReqReceiptData,
     requestReceiptTable,
-    saveReceiptValue
+    saveReceiptValue,
+    genCodeOrderStatus,
+    deliveryPage,
+    sync,
+    deliverSubmit
 }

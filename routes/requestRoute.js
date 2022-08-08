@@ -6,6 +6,7 @@ const controller = require('../controllers/ordersController')
 router.get('/',controller.requestService);
 router.get('/request',controller.requestPage);
 router.get('/receipt',controller.requestReceiptPage);
+router.post('/check/:genCode',controller.genCodeOrderStatus);
 router.post('/:genCode',controller.syncReqReceiptData);
 router.get('/receipt/table',controller.requestReceiptTable);
 

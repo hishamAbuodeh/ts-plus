@@ -10,9 +10,14 @@
                     <th>Item Code</th>
                     <th>Item Name</th>
                     <th>Barcode</th>
-                    <th>Receipt</th>
-                    <th>Ordered</th>
-                    <th>Remain</th>
+                    <% if(info.page == "receipt"){ %>
+                      <th>Receipt</th>
+                      <th>Ordered</th>
+                      <th>Remain</th>
+                    <% } else { %>
+                      <th>Deliver</th>
+                      <th>Ordered</th>
+                    <% } %>
                     <th>Unit</th>
                   </tr>
                 </thead>
@@ -37,7 +42,9 @@
                         <td id="td-<%= item.id %>" style="display: flex;justify-content: center;"><input id="input-<%= item.id %>" type="number" style="width: 100px;" step="0.0"/></td>
                       <% } %>
                       <td id="qty-<%= item.id %>"><%= item.OrderRequest %></td>
-                      <td id="diff-<%= item.id %>"><%= item.Difference %></td>
+                      <% if(info.page == "receipt"){ %>
+                        <td id="diff-<%= item.id %>"><%= item.Difference %></td>
+                      <% } %>
                       <td id="uom-<%= item.id %>"><%= item.BuyUnitMsr %></td>
                     </tr>
                   <% }; %>
