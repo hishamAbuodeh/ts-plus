@@ -23,6 +23,9 @@
 </head>
 <body id="body" style="position: relative;height:100%;">
     <div>
+        <%- include("partials/navigationBtu") %>
+    </div>
+    <div>
         <%- include("partials/table",{info : {results : data.results, page : 'request'}}) %>
     </div>
     <div class="otterDiv">
