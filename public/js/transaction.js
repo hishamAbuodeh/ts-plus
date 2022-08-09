@@ -126,6 +126,9 @@ const showModal = (type) => {
         case "waiting":
             $(".modal_waiting_container").attr("style", "display:flex;");
             break;
+        case "notAllowed":
+            $(".modal_notAllowed_container").attr("style", "display:flex;");
+            break;
         default:
             break;
     }
@@ -176,6 +179,9 @@ const hideModal = (type) => {
             break;
         case "waiting":
             $(".modal_waiting_container").attr("style", "display:none;");
+            break;
+        case "notAllowed":
+            $(".modal_notAllowed_container").attr("style", "display:none;");
             break;
         default:
             break;

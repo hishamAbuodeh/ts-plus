@@ -27,6 +27,7 @@ const getUser = async (username,password) => {
         const pool = await sql.getSQL();
         const user = await pool.request().query(`select * from ${USERS_TABLE} where Username = '${username}' and Password = '${password}'`)
         .then(result => {
+            pool.close();
             return result.recordset;
         })
         return user
@@ -40,6 +41,7 @@ const getWhs = async (username) => {
         const pool = await sql.getSQL();
         const whsCode = await pool.request().query(`select * from ${USERS_WHS_TABLE} where Username = '${username}'`)
         .then(result => {
+            pool.close();
             return result.recordset;
         })
         return whsCode
@@ -53,6 +55,7 @@ const getTransferReq = async (genCode,warehousefrom) => {
         const pool = await sql.getSQL();
         const user = await pool.request().query(`select * from ${REQUSET_TRANSFER_TABLE} where GenCode = '${genCode}' and SAP_Procces = 2 and warehousefrom = '${warehousefrom}'`)
         .then(result => {
+            pool.close();
             return result.recordset;
         })
         return user
@@ -549,22 +552,49 @@ const sendDeliverRec = async(rec,arr,pool,length) => {
         }else{
             queryStatment = `delete from ${REQUSET_TRANSFER_TABLE} where ID = ${rec.id}`
         }
-        pool.request().query(queryStatment)
-        .then(result => {
-            console.log('table record updated')
-            prisma.updateReqRecStatus(rec.id,arr)
-            .then(() => {
-                if(arr.length == length){
-                    pool.close();
-                    resolve();
-                }
+        try{
+            pool.request().query(queryStatment)
+            .then(result => {
+                console.log('table record updated')
+                prisma.updateReqRecStatus(rec.id,arr)
+                .then(() => {
+                    if(arr.length == length){
+                        pool.close();
+                        resolve();
+                    }
+                })
+                .catch(err => {
+                    reject()
+                })
             })
-            .catch(err => {
-                reject()
-            })
-        })
+        }catch(err){
+            reject()
+        }
     })
 
+}
+
+const checkStuts = async(whsCode) => {
+    return new Promise((resolve,reject) => {
+        const start = async () => {
+            try{
+                const pool = await sql.getSQL()
+                pool.request().query(`select * from ${USERS_WHS_TABLE} where WhsCode = '${whsCode}'`)
+                .then(result => {
+                    const allowed = result.recordset[0].Allowed
+                    if(allowed == '0'){
+                        resolve('notAllowed')
+                    }else{
+                        resolve('allowed')
+                    }
+                    pool.close();
+                })
+            }catch(err){
+                reject()
+            }
+        }
+        start()
+    })
 }
 
 module.exports = {
@@ -582,5 +612,6 @@ module.exports = {
     checkOpenDays,
     getTransferReq,
     saveTransferReq,
-    submitDeliverToSQL
+    submitDeliverToSQL,
+    checkStuts
 }

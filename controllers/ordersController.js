@@ -590,6 +590,20 @@ const sendRequestEmail = async (req,res) => {
     }
 }
 
+const checkAllowStatus = async (req,res) => {
+    try{
+        functions.checkStuts(req.session.whsCode)
+        .then((msg) => {
+            res.send(msg)
+        })
+        .catch(() => {
+            res.send('error')
+        })
+    }catch(err){
+        res.send('error')
+    }
+}
+
 module.exports = {
     requestPage,
     saveOrderValue,
@@ -615,5 +629,6 @@ module.exports = {
     deliverSubmit,
     printPage,
     printReport,
-    sendRequestEmail
+    sendRequestEmail,
+    checkAllowStatus
 }

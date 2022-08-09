@@ -15,7 +15,7 @@ $(document).ready(() => {
         .then((msg) => {
             isOpened = msg.open
             if(isOpened){
-                page = 'goRequest'
+                const page = 'goRequest'
                 showPage(page)
             }else{
                 showModal('sendEmail')
@@ -37,19 +37,43 @@ $(document).ready(() => {
             sendRequestEmail()
         },300)
     });
+    $('.check_allow').on('click',()=>{
+        changeModalCont("waiting","sendEmail")
+        setTimeout(() => {
+            checkStaus()
+        },300)
+    });
 })
 
 const sendRequestEmail = () => {
     $.get("/Request/AllowRequest").then((msg) => {
-        console.log(msg)
         if(msg != 'error'){
             changeModalCont("success","waiting")
             setTimeout(() => {
                 hideModal("success")
             },1000)
         }else{
+            changeModalCont("sendEmail","waiting")
+            alert("لا يوجد اتصال بالانترنت. الرجاء المحاولة مرة اخرى");
+        }
+    })
+}
+
+const checkStaus = () => {
+    $.get("/Request/CheckAllow").then((msg) => {
+        console.log(msg)
+        if(msg == 'allowed'){
             hideModal("waiting")
-            alert("خطأ داخلي الرجاء المحاولة مرة اخرى");
+            const page = 'goRequest'
+            showPage(page)
+        }else if(msg == 'notAllowed'){
+            changeModalCont("notAllowed","waiting")
+            setTimeout(() => {
+                hideModal("notAllowed")
+            },2000)
+        }else if(msg == 'error'){
+            changeModalCont("sendEmail","waiting")
+            alert("لا يوجد اتصال بالانترنت. الرجاء المحاولة مرة اخرى");
         }
     })
 }
