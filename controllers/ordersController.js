@@ -2,6 +2,7 @@ const prisma = require('../utils/prismaDB');
 const functions = require('../utils/functions');
 const file = require('../utils/readAndWriteFiles')
 const hana = require('../utils/hana')
+const sendEmail = require('../utils/email')
 
 const requestPage = async (req,res) => {
     if(req.session.loggedin)
@@ -571,6 +572,24 @@ const sync = async (req,res) => {
     }
 }
 
+const sendRequestEmail = async (req,res) => {
+    try{
+        const whsCode = req.session.whsCode
+        const text = `الرجاء السماح لفرع رقم ${whsCode} بعمل طلبية في غير وقتها المحدد`
+        const subject = `طلب عمل طلبية في غير الوقت المحدد`
+        const toEmail = req.session.supplierEmail
+        sendEmail(text,subject,toEmail)
+        .then(() => {
+            res.send('done')
+        })
+        .catch(() => {
+            res.send('error')
+        })
+    }catch(err){
+        res.send('error')
+    }
+}
+
 module.exports = {
     requestPage,
     saveOrderValue,
@@ -595,5 +614,6 @@ module.exports = {
     sync,
     deliverSubmit,
     printPage,
-    printReport
+    printReport,
+    sendRequestEmail
 }

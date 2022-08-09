@@ -27,14 +27,16 @@ const sendEmail = async (text,subject,toEmail) => {
         subject : subject,
         text : text,
     }
-    transporter.sendMail(emailOptions,(error,info) => {
-        if (error)
-        {
-            console.log(error)
-            return 'error'
-        };
-        console.log('email was sent')
-        return 'sent'
+    return new Promise((resolve,reject) => {
+        transporter.sendMail(emailOptions,(error,info) => {
+            if (error)
+            {
+                console.log(error)
+                reject()
+            };
+            console.log('email was sent')
+            resolve()
+        })
     })
 }
 
