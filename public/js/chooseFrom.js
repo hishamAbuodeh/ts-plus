@@ -31,7 +31,19 @@ $(document).ready(() => {
     $('.netError_accept5').on('click',()=>{
         hideModal("net-error5")
         checkGenCode(genCodeValue)
-    });  
+    });
+    $('#goBackBtu').on('click',()=>{
+        if(currentPage == "From"){
+            const data = `<div><a style="color: white;" href="/Transfer" id="goOpenTransfer">press</a></div>`
+            goDirect('goOpenTransfer',data)
+        }else{
+            const data = `<div><a style="color: white;" href="/Request" id="goOpenRequest">press</a></div>`
+            goDirect('goOpenRequest',data)
+        }
+    });
+    $('#goHomeBtu').on('click',()=>{
+        goToPage('goTransaction')
+    });    
 })
 
 const checkGenCode = (value) => {

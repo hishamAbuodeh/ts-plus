@@ -14,7 +14,14 @@ $(document).ready(() => {
         }else{
             alert('الرجاء مسح باركود الطلبية')
         }
-    })  
+    })
+    $('#goBackBtu').on('click',()=>{
+        const data = `<div><a style="color: white;" href="/Transfer" id="goOpenTransfer">press</a></div>`
+        goDirect('goOpenTransfer',data)
+    });
+    $('#goHomeBtu').on('click',()=>{
+        goToPage('goTransaction')
+    });  
 })
 
 const showReport = (page,genCode) => {

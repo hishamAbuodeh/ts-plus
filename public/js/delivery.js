@@ -23,12 +23,23 @@ $(document).ready(() => {
       hideModal("net-error3");
       tryToSubmit();
   });
+  $('#goBackBtu').on('click',()=>{
+    if(pageOption == 'inputMode'){
+      const data = `<div><a style="color: white;" href="/Transfer" id="goOpenTransfer">press</a></div>`
+      goDirect('goOpenTransfer',data)
+    }else{
+      closeTable()
+    }
+  });
+  $('#goHomeBtu').on('click',()=>{
+      goToPage('goTransaction')
+  });
 })
 
 const showDocNum = () => {
+    pageOption = 'inputMode'
     document.getElementById('receiptDucNo').innerHTML = docNumDiv
     $('#poNumBtu').on('click',() => {
-        pageOption = 'receiptTable'
         const docNumValue = $('.input-po').val()
         if(docNumValue != ""){
             showTable(docNumValue)
@@ -76,6 +87,7 @@ const closeTable = () => {
 }
 
 const createTable = (table) => {
+    pageOption = 'receiptTable'
     const poDiv = $('#receiptDucNo');
     const tableDiv = $('#receiptTable');
     const btuDiv = $('.otterDiv');

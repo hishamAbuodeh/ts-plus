@@ -59,6 +59,12 @@ $(function () {
   $("#close1").on("click", (e) => {
     showGenCodes()
   });
+  $('#goBackBtu').on('click',()=>{
+    showGenCodes()
+  });
+  $('#goHomeBtu').on('click',()=>{
+    goToPage('goTransaction')
+  }); 
 });
 
 const edit = (id) => {

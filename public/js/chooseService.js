@@ -43,6 +43,12 @@ $(document).ready(() => {
             checkStaus()
         },300)
     });
+    $('#goBackBtu').on('click',()=>{
+        goToPage('goTransaction')
+    });
+    $('#goHomeBtu').on('click',()=>{
+        goToPage('goTransaction')
+    });  
 })
 
 const sendRequestEmail = () => {
