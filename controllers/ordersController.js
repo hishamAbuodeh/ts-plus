@@ -65,7 +65,7 @@ const printPage = async (req,res) => {
 const printReport = async(req,res) => {
     if(req.session.loggedin)
     {
-        const {page,genCode} = req.params
+        const {page,genCode,type} = req.params
         let records;
         let mappedData;
         if(page == "request"){
@@ -82,7 +82,11 @@ const printReport = async(req,res) => {
                     GenCode:rec.GenCode,
                 }
             })
-            res.render('partials/printTransfer',{results:mappedData,page})
+            if(type == "table"){
+                res.render('partials/printTransfer',{results:mappedData,page})
+            }else{
+                res.send({results:mappedData,page})
+            }
         }else{
             records = await prisma.findAllDelivered(genCode)
             if(records){
@@ -98,7 +102,11 @@ const printReport = async(req,res) => {
                         GenCode:rec.GenCode,
                     }
                 })
-                res.render('partials/printTransfer',{results:mappedData,page})
+                if(type == "table"){
+                    res.render('partials/printTransfer',{results:mappedData,page})
+                }else{
+                    res.send({results:mappedData,page})
+                }
             }else{
                 res.send('noData')
             }
