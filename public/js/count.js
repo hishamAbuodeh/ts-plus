@@ -25,7 +25,13 @@ $(document).ready(() => {
     $(".netError_accept3").on("click", () => {
       hideModal("net-error3");
       tryToSubmit();
-  });
+    });
+    $('#goBackBtu').on('click',()=>{
+      goToPage('goTransaction')
+    });
+    $('#goHomeBtu').on('click',()=>{
+        goToPage('goTransaction')
+    });  
 })
 
 const showDocNum = () => {

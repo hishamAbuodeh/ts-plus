@@ -61,6 +61,14 @@ $(document).ready(function() {
     $('.netError_accept').on('click',()=>{
         hideModal("net-error")
         showPage(page)
+    });
+    $('#logoutNavBtu').on('click',()=>{
+        $.post("/LogOut").then((data) => {
+            $("#body").html(data);
+            $(document).ready(function () {
+                document.getElementById("goLogin").click();
+            });
+        });
     });  
 })
 

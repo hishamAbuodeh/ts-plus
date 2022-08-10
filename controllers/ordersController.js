@@ -65,7 +65,7 @@ const printPage = async (req,res) => {
 const printReport = async(req,res) => {
     if(req.session.loggedin)
     {
-        const {page,genCode} = req.params
+        const {page,genCode,type} = req.params
         let records;
         let mappedData;
         if(page == "request"){
@@ -82,7 +82,11 @@ const printReport = async(req,res) => {
                     GenCode:rec.GenCode,
                 }
             })
-            res.render('partials/printTransfer',{results:mappedData,page})
+            if(type == "table"){
+                res.render('partials/printTransfer',{results:mappedData,page})
+            }else{
+                res.send({results:mappedData,page})
+            }
         }else{
             records = await prisma.findAllDelivered(genCode)
             if(records){
@@ -98,7 +102,11 @@ const printReport = async(req,res) => {
                         GenCode:rec.GenCode,
                     }
                 })
-                res.render('partials/printTransfer',{results:mappedData,page})
+                if(type == "table"){
+                    res.render('partials/printTransfer',{results:mappedData,page})
+                }else{
+                    res.send({results:mappedData,page})
+                }
             }else{
                 res.send('noData')
             }
@@ -432,19 +440,40 @@ const createSuggest = async (req,res) => {
     const length = rows.length
     const arr = []
     rows.forEach(rec => {
-        const min = rec.MinStock
-        const onHand = rec.OnHand
-        const order = rec.Order
+        const min = parseFloat(rec.MinStock)
+        const onHand = parseFloat(rec.OnHand)
+        const order = parseFloat(rec.Order)
         const id = rec.id
-        const convFac = rec.ConvFactor
-        const suggQty = rec.SuggQty
+        const convFac = parseFloat(rec.ConvFactor)
+        const suggQty = parseFloat(rec.SuggQty)
         if((order == 0) && ((min - onHand) > 0)){
             let value = suggQty
             if(value > 0){
+                let diff;
+                let diff1;
                 if(suggQty % convFac == 0){
                     value = suggQty
                 }else{
+                    // diff = parseFloat(convFac) - parseFloat(suggQty % convFac)
+                    // diff = parseFloat(diff) / parseFloat(suggQty)
+                    // diff = parseInt(diff * 100)
+                    // if(diff > 20){
+                    //     diff1 = parseFloat(suggQty % convFac)
+                    //     diff1 = parseFloat(diff1) / parseFloat(suggQty)
+                    //     diff1 = parseInt(diff1 * 100)
+                    //     if(diff1 > 20){
+                    //         value = parseFloat(suggQty) + (parseFloat(convFac) - parseFloat(suggQty % convFac))
+                    //     }else{
+                    //         value = parseFloat(suggQty) - parseFloat(suggQty % convFac)
+                    //     }
+                    // }else{
+                    //     value = parseFloat(suggQty) + (parseFloat(convFac) - parseFloat(suggQty % convFac))
+                    // }
                     value = parseFloat(suggQty) + (parseFloat(convFac) - parseFloat(suggQty % convFac))
+                    
+                }
+                if((value + onHand) < min){
+                    value = parseFloat(min) + (parseFloat(convFac) - parseFloat(min % convFac))
                 }
                 new Promise((resolve,reject) => {
                     prisma.updateSuggest(id,value,true)

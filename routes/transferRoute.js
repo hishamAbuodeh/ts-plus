@@ -11,6 +11,6 @@ router.get('/Delivery',controller.deliveryPage);
 router.post('/Sync/:genCode',controller.sync);
 router.post('/Deliver/Submit',controller.deliverSubmit);
 router.get('/Print',controller.printPage);
-router.get('/Print/Report/:page/:genCode',controller.printReport);
+router.get('/Print/Report/:page/:genCode/:type',controller.printReport);
 
 module.exports = router

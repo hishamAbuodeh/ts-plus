@@ -49,6 +49,17 @@ $(function () {
       hideModal("net-error");
       tryToSubmit();
     });
+    $('#goBackBtu').on('click',()=>{
+      if(page == 'request'){
+        const data = `<div><a style="color: white;" href="/Request" id="goOpenRequest">press</a></div>`
+        goDirect('goOpenRequest',data)
+      }else{
+        goToPage('goChoose')
+      }
+    });
+    $('#goHomeBtu').on('click',()=>{
+        goToPage('goTransaction')
+    });  
   });
   $("#exit").on("click", (e) => {
     const txt = $("#exit p")[0].innerHTML.trim();
@@ -72,6 +83,22 @@ $(function () {
     }
   });
 });
+
+const goToPage = (page) => {
+  $.get('/Routing').then(data => {
+    $('#body').html(data)
+    $(document).ready(function() {
+        setTimeout(() => {
+            document.getElementById(`${page}`).click();
+        },1000)
+    })
+  });
+}
+
+const goDirect = (page,data) => {
+  $('#body').html(data)
+  document.getElementById(`${page}`).click();
+}
 
 const edit = (id) => {
   const tr = $(`#tr${id}`);

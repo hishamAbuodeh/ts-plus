@@ -1,7 +1,11 @@
+let currentPage;
+let currentGenCode;
 $(document).ready(() => {
     $('#selectBtu').on('click',() => {
         const value = $('#select-0').val()
         if(value != ""){
+            currentPage = "request"
+            currentGenCode = value
             showReport("request",value)
         }else{
             alert('الرجاء اختيار كود الطلبية')
@@ -10,16 +14,25 @@ $(document).ready(() => {
     $('#inputBtu').on('click',() => {
         const value = $('#input-0').val()
         if(value != ""){
+            currentPage = "deliver"
+            currentGenCode = value
             showReport("deliver",value)
         }else{
             alert('الرجاء مسح باركود الطلبية')
         }
-    })  
+    })
+    $('#goBackBtu').on('click',()=>{
+        const data = `<div><a style="color: white;" href="/Transfer" id="goOpenTransfer">press</a></div>`
+        goDirect('goOpenTransfer',data)
+    });
+    $('#goHomeBtu').on('click',()=>{
+        goToPage('goTransaction')
+    });  
 })
 
 const showReport = (page,genCode) => {
     setTimeout(() => {
-      $.get(`/Transfer/Print/Report/${page}/${genCode}`).then((results) => {
+      $.get(`/Transfer/Print/Report/${page}/${genCode}/table`).then((results) => {
         if (results == "noData") {
           showModal('notFound')
           setTimeout(() => {
@@ -31,8 +44,18 @@ const showReport = (page,genCode) => {
             $("#close").on("click", (e) => {
               $("#reportDiv").empty();
             });
+            $('#print').on('click',()=>{
+              getDataAndPrint(currentPage,currentGenCode)
+            }); 
           });
         }
       });
     }, 100);
   };
+
+  const getDataAndPrint = (page,genCode) => {
+    console.log(page,genCode)
+    $.get(`/Transfer/Print/Report/${page}/${genCode}/data`).then((results) => {
+      console.log(results)
+    })
+  }
