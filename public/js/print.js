@@ -1,6 +1,3 @@
-import pdfMake from "../../node_modules/pdfmake/build/pdfmake";
-import pdfFonts from "../../node_modules/pdfmake/build/vfs_fonts";
-pdfMake.addVirtualFileSystem(pdfFonts);
 let currentPage;
 let currentGenCode;
 $(document).ready(() => {
