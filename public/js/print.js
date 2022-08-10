@@ -1,3 +1,6 @@
+import pdfMake from "../../node_modules/pdfmake/build/pdfmake";
+import pdfFonts from "../../node_modules/pdfmake/build/vfs_fonts";
+pdfMake.addVirtualFileSystem(pdfFonts);
 let currentPage;
 let currentGenCode;
 $(document).ready(() => {
@@ -57,5 +60,13 @@ const showReport = (page,genCode) => {
     console.log(page,genCode)
     $.get(`/Transfer/Print/Report/${page}/${genCode}/data`).then((results) => {
       console.log(results)
+      let docDefinition = {
+        content: [
+          'First paragraph',
+          'Another paragraph, this time a little bit longer to make sure, this line will be divided into at least two lines'
+        ]
+        
+      }
+      pdfMake.createPdf(docDefinition).open();
     })
   }
