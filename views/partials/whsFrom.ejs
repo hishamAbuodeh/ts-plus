@@ -18,6 +18,9 @@
     <title>From</title>
 </head>
 <body class="bodyClass" id="body">
+    <div>
+        <%- include("navigationBtu") %>
+    </div>
     <div id="choose">
         <div id="innerChoose">
             <%- include("transferFrom",{info : {results : data.results, match : data.match}}) %>

@@ -120,6 +120,15 @@ const showModal = (type) => {
         case "net-error5":
             $('.modal_netError_container5').attr('style','display:flex;');
             break;
+        case "sendEmail":
+            $('.modal_request_allowing').attr('style','display:flex;');
+            break;
+        case "waiting":
+            $(".modal_waiting_container").attr("style", "display:flex;");
+            break;
+        case "notAllowed":
+            $(".modal_notAllowed_container").attr("style", "display:flex;");
+            break;
         default:
             break;
     }
@@ -164,6 +173,15 @@ const hideModal = (type) => {
             break;
         case "net-error5":
             $('.modal_netError_container5').attr('style','display:none;');
+            break;
+        case "sendEmail":
+            $('.modal_request_allowing').attr('style','display:none;');
+            break;
+        case "waiting":
+            $(".modal_waiting_container").attr("style", "display:none;");
+            break;
+        case "notAllowed":
+            $(".modal_notAllowed_container").attr("style", "display:none;");
             break;
         default:
             break;

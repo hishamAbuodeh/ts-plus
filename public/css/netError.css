@@ -37,6 +37,14 @@
     font-size: 18px;
     text-align: end;
   }
+  .request_Content  p {
+    position: absolute;
+    width: 100%;
+    top: 20%;
+    margin-bottom: 40px;
+    font-size: 18px;
+    text-align: end;
+  }
   .netError_Content  button.netError_denied {
     background-color: red;
     border: none;
@@ -86,6 +94,17 @@
     border: none;
     border-radius: 5px;
     width: 200px;
+    padding: 14px;
+    font-size: 16px;
+    color: white;
+    box-shadow: 0px 6px 18px -5px red;
+  }
+
+  .netError_Content  button.request_close {
+    background-color: red;
+    border: none;
+    border-radius: 5px;
+    width: 140px;
     padding: 14px;
     font-size: 16px;
     color: white;
@@ -169,6 +188,28 @@
     box-shadow: 0px 6px 18px -5px green;
   }
 
+  .netError_Content  button.send_email {
+    background-color: gray;
+    border: none;
+    border-radius: 5px;
+    width: 140px;
+    padding: 14px;
+    font-size: 16px;
+    color: white;
+    box-shadow: 0px 6px 18px -5px grey;
+  }
+
+  .netError_Content  button.check_allow {
+    background-color: green;
+    border: none;
+    border-radius: 5px;
+    width: 140px;
+    padding: 14px;
+    font-size: 16px;
+    color: white;
+    box-shadow: 0px 6px 18px -5px green;
+  }
+
   .netError_Content  button.confirm_btu {
     background-color: green;
     border: none;
@@ -229,6 +270,11 @@
   }
 
   .modal_netError_container5{
+    height: 100%;
+    width: 100%;
+  }
+
+  .modal_request_allowing{
     height: 100%;
     width: 100%;
   }

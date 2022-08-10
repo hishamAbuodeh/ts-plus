@@ -18,12 +18,15 @@
     <title>Receipt</title>
 </head>
 <body class="bodyClass" id="body">
+    <div>
+        <%- include("partials/navigationBtu") %>
+    </div>
     <div id="innerChoose">
         <div id="div" style="width:60%;display: flex;justify-content: flex-end;align-items: center;">
             <label style="margin-right: 5px;font-size: 25px;">
               اختر : 
             </label>
-            <select id="select-0" style="width: 53%;">
+            <select id="select-0" style="width: 45%;">
                 <% for (let i = 0; i < data.length; i++) { item = data[i] %>
                     <option><%= item.GenCode %></option>
                 <% } %>

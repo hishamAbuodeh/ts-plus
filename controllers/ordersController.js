@@ -2,6 +2,7 @@ const prisma = require('../utils/prismaDB');
 const functions = require('../utils/functions');
 const file = require('../utils/readAndWriteFiles')
 const hana = require('../utils/hana')
+const sendEmail = require('../utils/email')
 
 const requestPage = async (req,res) => {
     if(req.session.loggedin)
@@ -43,6 +44,65 @@ const deliveryPage = async (req,res) => {
     if(req.session.loggedin)
     {
         res.render('deliveryTransfer')
+    }else{
+        res.redirect('/Login')
+    }
+}
+
+const printPage = async (req,res) => {
+    if(req.session.loggedin)
+    {
+        prisma.getAllTransferGencodes().then(results => {
+            res.render('print',{data:results})
+        }).catch(err => {
+            res.render('error')
+        });
+    }else{
+        res.redirect('/Login')
+    }
+}
+
+const printReport = async(req,res) => {
+    if(req.session.loggedin)
+    {
+        const {page,genCode} = req.params
+        let records;
+        let mappedData;
+        if(page == "request"){
+            records = await prisma.findAllSent(genCode)
+            mappedData = records.map(rec => {
+                return {
+                    ItemCode:rec.ItemCode,
+                    ItemName:rec.ItemName,
+                    CodeBars:rec.CodeBars,
+                    WarehouseFrom:rec.Warehousefrom,
+                    WarehouseTo:rec.WhsCode,
+                    Order:rec.Order,
+                    BuyUnitMsr:rec.BuyUnitMsr,
+                    GenCode:rec.GenCode,
+                }
+            })
+            res.render('partials/printTransfer',{results:mappedData,page})
+        }else{
+            records = await prisma.findAllDelivered(genCode)
+            if(records){
+                mappedData = records.map(rec => {
+                    return {
+                        ItemCode:rec.ItemCode,
+                        ItemName:rec.ItemName,
+                        CodeBars:rec.CodeBars,
+                        WarehouseFrom:rec.WhsCode,
+                        WarehouseTo:rec.WarehouseTo,
+                        Order:rec.Order,
+                        BuyUnitMsr:rec.BuyUnitMsr,
+                        GenCode:rec.GenCode,
+                    }
+                })
+                res.render('partials/printTransfer',{results:mappedData,page})
+            }else{
+                res.send('noData')
+            }
+        }
     }else{
         res.redirect('/Login')
     }
@@ -512,6 +572,38 @@ const sync = async (req,res) => {
     }
 }
 
+const sendRequestEmail = async (req,res) => {
+    try{
+        const whsCode = req.session.whsCode
+        const text = `الرجاء السماح لفرع رقم ${whsCode} بعمل طلبية في غير وقتها المحدد`
+        const subject = `طلب عمل طلبية في غير الوقت المحدد`
+        const toEmail = req.session.supplierEmail
+        sendEmail(text,subject,toEmail)
+        .then(() => {
+            res.send('done')
+        })
+        .catch(() => {
+            res.send('error')
+        })
+    }catch(err){
+        res.send('error')
+    }
+}
+
+const checkAllowStatus = async (req,res) => {
+    try{
+        functions.checkStuts(req.session.whsCode)
+        .then((msg) => {
+            res.send(msg)
+        })
+        .catch(() => {
+            res.send('error')
+        })
+    }catch(err){
+        res.send('error')
+    }
+}
+
 module.exports = {
     requestPage,
     saveOrderValue,
@@ -534,5 +626,9 @@ module.exports = {
     genCodeOrderStatus,
     deliveryPage,
     sync,
-    deliverSubmit
+    deliverSubmit,
+    printPage,
+    printReport,
+    sendRequestEmail,
+    checkAllowStatus
 }

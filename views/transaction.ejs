@@ -16,7 +16,10 @@
     <script src="/js/transaction.js"></script>
     <title>transaction</title>
   </head>
-  <body class="bodyClass" id="body">
+  <body class="bodyClass" id="body" style="position:relative;">
+    <div>
+      <%- include("partials/logoutBtu") %>
+  </div>
     <div id="cards">
       <%- include("partials/cards",{data}) %>
     </div>

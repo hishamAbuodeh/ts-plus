@@ -16,9 +16,12 @@ const transactionPage = (req,res) => {
 const checkConditions = (req,res) => {
     if(req.session.loggedin)
     {
+        const open = req.session.open
+        const allowed = req.session.allowed == "0" ? false : true;
+        const status = open? open : allowed
         res.send({
             counting:req.session.countingAvailable,
-            open:req.session.open
+            open:status
         })
     }else{
         res.redirect('/Login')
