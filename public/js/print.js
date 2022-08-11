@@ -55,6 +55,7 @@ const showReport = (page,genCode) => {
 
   const getDataAndPrint = (page,genCode) => {
     $.get(`/Transfer/Print/Report/${page}/${genCode}/data`).then((results) => {
+      console.log(results.from,results.to)
       const tableBody = []
       let tableHeader;
       if(page == "request")
