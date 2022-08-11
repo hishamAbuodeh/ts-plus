@@ -251,7 +251,8 @@ const transferPage = async (req,res) => {
                     results,
                     username : req.session.username,
                     whsCode : req.session.whsCode,
-                    from : req.session.from
+                    from : req.session.from,
+                    genCode : results[0].GenCode
                 }
                 res.render('transfer',{data})
             }

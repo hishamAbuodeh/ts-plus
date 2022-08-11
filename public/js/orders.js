@@ -258,6 +258,13 @@ const tryToSubmit = () => {
           setTimeout(() => {
             $("#exit p")[0].innerHTML = "Log out";
             $("#report p")[0].innerHTML = "Sent report";
+            if(page == 'transfer'){
+              $("#print").attr('style','display:"";')
+              $('#print').on('click',()=>{
+                const genCode = $("title")[0].id;
+                getDataAndPrint("request",genCode)
+              });
+            }
             hideModal("success");
           }, 1000);
         }, 500);
@@ -470,5 +477,71 @@ const reloadPage = (value,msg) => {
     }else{
       location.reload();
     }
+  })
+}
+
+const getDataAndPrint = (page,genCode) => {
+  $.get(`/Transfer/Print/Report/${page}/${genCode}/data`).then((results) => {
+    const tableBody = []
+    let tableHeader;
+    if(page == "request")
+      tableHeader = ["Item Code","Item Name","Barcode","Ordered","Unit"]
+    else{
+      tableHeader = ["Item Code","Item Name","Barcode","Delivered","Unit"]
+    }
+    tableBody.push(tableHeader)
+    results.results.forEach(rec => {
+      const row = [rec.ItemCode,{text:rec.ItemName, style:'arabic'},rec.CodeBars,rec.Order,rec.BuyUnitMsr]
+      tableBody.push(row)
+    })
+    pdfMake.fonts = {
+      DroidKufi: {
+          normal: 'DroidKufi-Regular.ttf',
+          bold: 'DroidKufi-Regular.ttf',
+          italics: 'DroidKufi-Regular.ttf',
+          bolditalics: 'DroidKufi-Regular.ttf'
+      },
+      Roboto: {
+        normal: 'Roboto-Italic.ttf',
+        bold: 'Roboto-Medium.ttf',
+        italics: 'Roboto-MediumItalic.ttf',
+        bolditalics: 'Roboto-Regular.ttf'
+      }
+    }
+    let docDefinition = {
+      content: [
+        {text: 'Transfer Order', style: 'header'},
+        {text: `From: ${results.results[0].WarehouseFrom}`, style: 'subHeader'},
+        {text: `To: ${results.results[0].WarehouseTo}`, style: 'subHeader'},
+        {text: `Order Code: ${results.results[0].GenCode}`, style: 'subHeader'},
+        {
+          style: 'tableStyle',
+          table: {
+            body: tableBody
+          }
+        },
+      ],
+      styles: {
+        header: {
+          font: 'Roboto',
+          alignment: 'center',
+          fontSize: 22,
+          bold: true,
+          margin: [0, 0, 0, 30]
+        },
+        subHeader: {
+          font: 'Roboto',
+          bold: true,
+          margin: [0, 0, 0, 10]
+        },
+        tableStyle: {
+          margin: [0, 20, 0, 0]
+        },
+        arabic:{
+          font: 'DroidKufi',
+        }
+      }
+    }
+    pdfMake.createPdf(docDefinition).print();
   })
 }
