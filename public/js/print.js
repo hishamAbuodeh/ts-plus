@@ -58,13 +58,13 @@ const showReport = (page,genCode) => {
       const tableBody = []
       let tableHeader;
       if(page == "request")
-        tableHeader = ["Item Code","Item Name","Barcode","Ordered","Unit"]
+        tableHeader = [{text:"Item Code",style:"margins"},{text:"Item Name",style:"margins"},{text:"Barcode",style:"margins"},{text:"Ordered",style:"margins"},{text:"Unit",style:"margins"}]
       else{
-        tableHeader = ["Item Code","Item Name","Barcode","Delivered","Unit"]
+        tableHeader = [{text:"Item Code",style:"margins"},{text:"Item Name",style:"margins"},{text:"Barcode",style:"margins"},{text:"Delivered",style:"margins"},{text:"Unit",style:"margins"}]
       }
       tableBody.push(tableHeader)
       results.results.forEach(rec => {
-        const row = [rec.ItemCode,{text:rec.ItemName, style:'arabic'},rec.CodeBars,rec.Order,rec.BuyUnitMsr]
+        const row = [{text:rec.ItemCode,style:"margins"},{text:flip(rec.ItemName), style:'arabicAndMargins'},{text:rec.CodeBars,style:"margins"},{text:rec.Order,style:"margins"},{text:rec.BuyUnitMsr,style:"margins"}]
         tableBody.push(row)
       })
       pdfMake.fonts = {
@@ -86,20 +86,37 @@ const showReport = (page,genCode) => {
           {text: 'Transfer Order', style: 'header'},
           {text: [
             {text: `From Warehouse: `, style: 'subHeader'},
-            {text: `${results.from}`, style: 'arabic'}
+            {text: `${flip(results.from)}`, style: 'arabicHeader'}
           ]},
           {text: `With Code No. ${results.results[0].WarehouseFrom}`, style: 'subHeader'},
           {text: [
             {text: `To Warehouse: `, style: 'subHeader'},
-            {text: `${results.to}`, style: 'arabic'}
+            {text: `${flip(results.to)}`, style: 'arabicHeader'}
           ]},
           {text: `With Code No. ${results.results[0].WarehouseTo}`, style: 'subHeader'},
-          {qr: `Order Code: ${results.results[0].GenCode}`, style: 'subHeader'},
+          {text: [
+            {text: `Order Code: `, style: 'subHeader'},
+            {text: `${results.results[0].GenCode}`, style: 'genCodeHeader'}
+          ]},
+          {text: `Date:       /         /`, style: 'subHeader'},
           {
             style: 'tableStyle',
             table: {
               body: tableBody
             }
+          },
+          {
+            columns: [
+              {
+                text: "Delivered Person", style: 'subHeader'
+              },
+              {
+                text: "Received Person", style: 'subHeader'
+              },
+              {
+                text: "Branch Manager", style: 'subHeader'
+              }
+            ]
           },
         ],
         styles: {
@@ -113,17 +130,51 @@ const showReport = (page,genCode) => {
           subHeader: {
             font: 'Roboto',
             bold: true,
-            margin: [0, 0, 0, 10]
+            margin: [0, 10, 0, 10]
+          },
+          genCodeHeader:{
+            color: '#FF1E00',
+            font: 'Roboto',
+            bold: true,
+            fontSize: 16,
+            margin: [0, 10, 0, 10]
           },
           tableStyle: {
-            margin: [0, 20, 0, 0]
+            margin: [0, 20, 0, 30]
+          },
+          arabicHeader:{
+            margin: [0, 0, 0, 10],
+            font: 'DroidKufi',
+            alignment: 'right',
           },
           arabic:{
             font: 'DroidKufi',
             alignment: 'right',
-          }
+          },
+          margins:{
+            margin: [10, 0, 10, 0],
+          },
+          arabicAndMargins:{
+            margin: [10, 0, 10, 0],
+            font: 'DroidKufi',
+            alignment: 'right',
+          },
         }
       }
       pdfMake.createPdf(docDefinition).print();
     })
+  }
+
+  const flip = (str) => {
+    const arr = str.split(" ")
+    let flippedStr = ""
+    for(let i = arr.length - 1; i >= 0; i--){
+      if(typeof arr[i] == "string"){
+        flippedStr = flippedStr + arr[i]
+        if(i > 0){
+          flippedStr += " "
+        }
+      }
+    }
+    return flippedStr
   }
