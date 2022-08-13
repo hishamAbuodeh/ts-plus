@@ -26,6 +26,7 @@ const validate = async (req,res) => {
                 req.session.supervisorName = whsCode[0].SupervisorName
                 req.session.supervisorEmail = whsCode[0].SupervisorEmail
                 req.session.countingAvailable = whsCode[0].CountingAvailable
+                req.session.warehouseName = whsCode[0].WarehouseName
                 req.session.allowed = whsCode[0].Allowed
                 res.send({msg : 'validate'})
             }else{
@@ -43,6 +44,14 @@ const logOut = (req,res) => {
     req.session.loggedin = false
     req.session.username = undefined
     req.session.whsCode = undefined
+    req.session.open = undefined
+    req.session.supplierName = undefined
+    req.session.supplierEmail = undefined
+    req.session.supervisorName = undefined
+    req.session.supervisorEmail = undefined
+    req.session.countingAvailable = undefined
+    req.session.warehouseName = undefined
+    req.session.allowed = undefined
     res.render('routing')
 }
 

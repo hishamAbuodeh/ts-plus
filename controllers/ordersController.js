@@ -67,9 +67,15 @@ const printReport = async(req,res) => {
     {
         const {page,genCode,type} = req.params
         let records;
+        let from;
+        let to;
         let mappedData;
         if(page == "request"){
             records = await prisma.findAllSent(genCode)
+            let match = await file.getMatchingFile()
+            match = functions.codeToName(match)
+            from = match[`${records[0].Warehousefrom}`]
+            to = records[0].WhsName
             mappedData = records.map(rec => {
                 return {
                     ItemCode:rec.ItemCode,
@@ -85,10 +91,12 @@ const printReport = async(req,res) => {
             if(type == "table"){
                 res.render('partials/printTransfer',{results:mappedData,page})
             }else{
-                res.send({results:mappedData,page})
+                res.send({results:mappedData,page,from,to})
             }
         }else{
             records = await prisma.findAllDelivered(genCode)
+            from = req.session.warehouseName
+            to = records[0].WhsName
             if(records){
                 mappedData = records.map(rec => {
                     return {
@@ -105,7 +113,7 @@ const printReport = async(req,res) => {
                 if(type == "table"){
                     res.render('partials/printTransfer',{results:mappedData,page})
                 }else{
-                    res.send({results:mappedData,page})
+                    res.send({results:mappedData,page,from,to})
                 }
             }else{
                 res.send('noData')
@@ -251,7 +259,8 @@ const transferPage = async (req,res) => {
                     results,
                     username : req.session.username,
                     whsCode : req.session.whsCode,
-                    from : req.session.from
+                    from : req.session.from,
+                    genCode : results[0].GenCode
                 }
                 res.render('transfer',{data})
             }
@@ -354,6 +363,7 @@ const deliverSubmit = async (req,res) =>{
                         CodeBars: rec.CodeBars,
                         WhsCode: rec.Warehousefrom,
                         WarehouseTo: rec.WhsCode,
+                        WhsName: rec.WhsName,
                         Order: rec.Order,
                         OrderRequest: rec.OrderRequest,
                         BuyUnitMsr: rec.BuyUnitMsr,
