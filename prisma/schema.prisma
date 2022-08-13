@@ -88,6 +88,7 @@ model deliveredItemshistory {
     CodeBars String
     WhsCode String
     WarehouseTo String
+    WhsName String
     Order Decimal @db.Decimal(10,6)
     OrderRequest Decimal @db.Decimal(10,6)
     Status String @default("deliverd")

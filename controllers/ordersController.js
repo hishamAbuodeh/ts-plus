@@ -111,9 +111,9 @@ const printReport = async(req,res) => {
                     }
                 })
                 if(type == "table"){
-                    res.render('partials/printTransfer',{results:mappedData,page,from,to})
+                    res.render('partials/printTransfer',{results:mappedData,page})
                 }else{
-                    res.send({results:mappedData,page})
+                    res.send({results:mappedData,page,from,to})
                 }
             }else{
                 res.send('noData')
@@ -363,6 +363,7 @@ const deliverSubmit = async (req,res) =>{
                         CodeBars: rec.CodeBars,
                         WhsCode: rec.Warehousefrom,
                         WarehouseTo: rec.WhsCode,
+                        WhsName: rec.WhsName,
                         Order: rec.Order,
                         OrderRequest: rec.OrderRequest,
                         BuyUnitMsr: rec.BuyUnitMsr,

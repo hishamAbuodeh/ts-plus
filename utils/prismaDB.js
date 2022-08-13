@@ -311,6 +311,11 @@ const findAllReceipt = async(genCode) => {
 
 const findAllDelivered = async(genCode) => {
     const records = await prisma.deliveredItemshistory.findMany({
+        orderBy:[
+            {
+                ItemName:"asc"
+            }
+        ],
         where: {
             GenCode:genCode
         }

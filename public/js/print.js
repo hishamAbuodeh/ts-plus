@@ -55,7 +55,6 @@ const showReport = (page,genCode) => {
 
   const getDataAndPrint = (page,genCode) => {
     $.get(`/Transfer/Print/Report/${page}/${genCode}/data`).then((results) => {
-      console.log(results.from,results.to)
       const tableBody = []
       let tableHeader;
       if(page == "request")
@@ -85,9 +84,17 @@ const showReport = (page,genCode) => {
       let docDefinition = {
         content: [
           {text: 'Transfer Order', style: 'header'},
-          {text: `From: ${results.results[0].WarehouseFrom}`, style: 'subHeader'},
-          {text: `To: ${results.results[0].WarehouseTo}`, style: 'subHeader'},
-          {text: `Order Code: ${results.results[0].GenCode}`, style: 'subHeader'},
+          {text: [
+            {text: `From Warehouse: `, style: 'subHeader'},
+            {text: `${results.from}`, style: 'arabic'}
+          ]},
+          {text: `With Code No. ${results.results[0].WarehouseFrom}`, style: 'subHeader'},
+          {text: [
+            {text: `To Warehouse: `, style: 'subHeader'},
+            {text: `${results.to}`, style: 'arabic'}
+          ]},
+          {text: `With Code No. ${results.results[0].WarehouseTo}`, style: 'subHeader'},
+          {qr: `Order Code: ${results.results[0].GenCode}`, style: 'subHeader'},
           {
             style: 'tableStyle',
             table: {
@@ -113,6 +120,7 @@ const showReport = (page,genCode) => {
           },
           arabic:{
             font: 'DroidKufi',
+            alignment: 'right',
           }
         }
       }
