@@ -95,9 +95,9 @@ const printReport = async(req,res) => {
             }
         }else{
             records = await prisma.findAllDelivered(genCode)
-            from = req.session.warehouseName
-            to = records[0].WhsName
             if(records){
+                from = req.session.warehouseName
+                to = records[0].WhsName
                 mappedData = records.map(rec => {
                     return {
                         ItemCode:rec.ItemCode,

@@ -484,6 +484,10 @@ const getDataAndPrint = (page,genCode) => {
   $.get(`/Transfer/Print/Report/${page}/${genCode}/data`).then((results) => {
     const tableBody = []
     let tableHeader;
+    let currentDate = new Date(Date.now())
+    currentDate = convertUTCDateToLocalDate(currentDate)
+    let date = new Date(currentDate).toISOString().split('T')[0]
+    const time = new Date(currentDate).toISOString().split('T')[1].split('.')[0]
     if(page == "request")
       tableHeader = [{text:"Item Code",style:"margins"},{text:"Item Name",style:"margins"},{text:"Barcode",style:"margins"},{text:"Ordered",style:"margins"},{text:"Unit",style:"margins"}]
     else{
@@ -511,21 +515,38 @@ const getDataAndPrint = (page,genCode) => {
     let docDefinition = {
       content: [
         {text: 'Transfer Order', style: 'header'},
-        {text: [
-          {text: `From Warehouse: `, style: 'subHeader'},
-          {text: `${flip(results.from)}`, style: 'arabicHeader'}
+        {columns: [
+          {width:110,text: `From Warehouse: `, style: 'subHeader'},
+          {width:70,text: [
+            // {text: `Code: `, style: 'sub2Header'},
+            {text: `${results.results[0].WarehouseFrom}`, style: 'sub2Header'},
+          ], style: 'subHeader'}, 
+          {text: [
+            // {text: `Name: `, style: 'sub2Header'},
+            {text: `${flip(results.from)}`, style: 'arabic2Header'},
+          ], style: 'sub3Header'},
         ]},
-        {text: `With Code No. ${results.results[0].WarehouseFrom}`, style: 'subHeader'},
-        {text: [
-          {text: `To Warehouse: `, style: 'subHeader'},
-          {text: `${flip(results.to)}`, style: 'arabicHeader'}
+        {columns: [
+          {width:110,text: `To Warehouse: `, style: 'subHeader'},
+          {width:70,text: [
+            // {text: `Code: `, style: 'sub2Header'},
+            {text: `${results.results[0].WarehouseTo}`, style: 'sub2Header'},
+          ], style: 'subHeader'}, 
+          {text: [
+            // {text: `Name: `, style: 'sub2Header'},
+            {text: `${flip(results.to)}`, style: 'arabic2Header'},
+          ], style: 'sub3Header'},
         ]},
-        {text: `With Code No. ${results.results[0].WarehouseTo}`, style: 'subHeader'},
-        {text: [
-          {text: `Order Code: `, style: 'subHeader'},
-          {text: `${results.results[0].GenCode}`, style: 'genCodeHeader'}
+        {columns: [
+          {text: [
+            {text: `Order Code: `, style: 'sub2Header'},
+            {text: `${results.results[0].GenCode}`, style: 'genCodeHeader'}
+          ], style: 'subHeader'},
+          {text: `Document Date: ${date}`, style: 'subHeader'},
+          {text: `Time: ${time}`, style: 'subHeader'},
         ]},
-        {text: `Date:       /         /`, style: 'subHeader'},
+        ,
+        {text: `Received Date:             /               /`, style: 'subHeader'},  
         {
           style: 'tableStyle',
           table: {
@@ -559,20 +580,31 @@ const getDataAndPrint = (page,genCode) => {
           bold: true,
           margin: [0, 10, 0, 10]
         },
+        sub2Header: {
+          font: 'Roboto',
+          bold: true,
+        },
+        sub3Header: {
+          font: 'Roboto',
+          bold: true,
+          margin: [0, 5, 0, 10]
+        },
+        arabic2Header:{
+          font: 'DroidKufi',
+          alignment: 'left',
+        },
         genCodeHeader:{
           color: '#FF1E00',
           font: 'Roboto',
           bold: true,
-          fontSize: 16,
-          margin: [0, 10, 0, 10]
         },
         tableStyle: {
           margin: [0, 20, 0, 30]
         },
         arabicHeader:{
-          margin: [0, 0, 0, 10],
+          margin: [0, 5, 0, 0],
           font: 'DroidKufi',
-          alignment: 'right',
+          alignment: 'left',
         },
         arabic:{
           font: 'DroidKufi',
@@ -604,4 +636,15 @@ const flip = (str) => {
     }
   }
   return flippedStr
+}
+
+function convertUTCDateToLocalDate(date) {
+  let newDate = new Date(date.getTime()+date.getTimezoneOffset()*60*1000);
+
+  let offset = date.getTimezoneOffset() / 60;
+  let hours = date.getHours();
+
+  newDate.setHours(hours - offset);
+
+  return newDate;   
 }
