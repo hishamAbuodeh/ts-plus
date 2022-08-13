@@ -597,6 +597,34 @@ const checkStuts = async(whsCode) => {
     })
 }
 
+const getOpenRequest = async(genCode) => {
+    return hana.getRequestReceipt(genCode)
+    .then((results) => {
+        return results
+    })
+    .catch(() => {
+        return 'error'
+    })
+}
+
+const upsertRequestOrders = async(results) => {
+    const length = results.length;
+    const arr = []
+    return new Promise((resolve,reject) => {
+        results.forEach(rec => {
+            prisma.upsertAllRec(rec,arr)
+            .then(() => {
+                if(arr.length == length){
+                    resolve()
+                }
+            })
+            .catch(() => {
+                reject()
+            })
+        })
+    })
+}
+
 module.exports = {
     toggleRequestButton,
     getUser,
@@ -613,5 +641,7 @@ module.exports = {
     getTransferReq,
     saveTransferReq,
     submitDeliverToSQL,
-    checkStuts
+    checkStuts,
+    getOpenRequest,
+    upsertRequestOrders
 }

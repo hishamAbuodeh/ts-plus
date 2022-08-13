@@ -187,7 +187,22 @@ const genCodeOrderStatus = async(req,res) => {
     const {genCode} = req.params
     if(req.session.loggedin)
     {
-        res.send('open')
+        const results = await functions.getOpenRequest(genCode)
+        if(results != "error"){
+            if(results.length > 0){
+                functions.upsertRequestOrders(results)
+                .then(() => {
+                    res.send('open')
+                })
+                .catch(() => {
+                    res.send('error')
+                })
+            }else{
+                res.send('close')
+            }
+        }else{
+            res.send('error')
+        }
     }else{
         res.redirect('/Login')
     }
