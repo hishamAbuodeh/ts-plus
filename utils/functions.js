@@ -8,6 +8,7 @@ const file = require('./readAndWriteFiles')
 const USERS_TABLE = process.env.USERS_TABLE
 const USERS_WHS_TABLE = process.env.USERS_WHS_TABLE
 const REQUSET_TRANSFER_TABLE = process.env.REQUSET_TRANSFER_TABLE
+const RECEIVING_PO_TABLE= process.env.RECEIVING_PO_TABLE
 const SQL_REQUEST_TRANSFER_PROCEDURE = process.env.SQL_REQUEST_TRANSFER_PROCEDURE
 const SQL_RECEIVING_RETURNPO_PROCEDURE = process.env.SQL_RECEIVING_RETURNPO_PROCEDURE
 const SQL_RECEIVINGPO_PROCEDURE = process.env.SQL_RECEIVINGPO_PROCEDURE
@@ -490,7 +491,7 @@ const startPOtransaction = async (pool,rec,userName,arr,length) => {
 }
 
 const checkSavedInPOtSql = async(itemCode,docNum,pool) => {
-    const queryStatment = `select * from ${REQUSET_TRANSFER_TABLE} where ItemCode = '${itemCode}' and DocNum = ${docNum}`
+    const queryStatment = `select * from ${RECEIVING_PO_TABLE} where ItemCode = '${itemCode}' and DocNum = ${docNum}`
     return new Promise((resolve,reject) => {
         pool.request().query(queryStatment)
         .then(result => {
