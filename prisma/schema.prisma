@@ -79,6 +79,7 @@ model rquestOrderhistory {
     Status String
     GenCode String
     createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }
 
 model deliveredItemshistory {
@@ -94,6 +95,8 @@ model deliveredItemshistory {
     Status String @default("deliverd")
     BuyUnitMsr String
     GenCode String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }
 
 model receiptItems{
@@ -129,6 +132,7 @@ model receipthistory{
     Order Decimal @db.Decimal(10,6)
     OpenQty Decimal @db.Decimal(10,6)
     createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }
 
 model returnItems{
@@ -157,4 +161,5 @@ model returnhistory{
     Order Decimal @db.Decimal(10,6)
     genCode String
     createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }

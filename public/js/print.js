@@ -87,7 +87,16 @@ const showReport = (page,genCode) => {
       }
       let docDefinition = {
         content: [
+          {columns: [
+            {
+              image: 'logo',
+              width: 60,
+              height: 40,
+            },
+            {text: flip("شركة مخازن الريحان"), style: 'arabic3Header'},
+          ]},
           {text: 'Transfer Order', style: 'header'},
+          {text: '_______________________________________________________________________________________________', style: 'sub4Header'},
           {columns: [
             {width:110,text: `From Warehouse: `, style: 'subHeader'},
             {width:70,text: [
@@ -146,7 +155,7 @@ const showReport = (page,genCode) => {
             alignment: 'center',
             fontSize: 22,
             bold: true,
-            margin: [0, 0, 0, 30]
+            margin: [0, -38, 0, 10]
           },
           subHeader: {
             font: 'Roboto',
@@ -162,9 +171,19 @@ const showReport = (page,genCode) => {
             bold: true,
             margin: [0, 5, 0, 10]
           },
+          sub4Header: {
+            font: 'Roboto',
+            bold: true,
+            margin: [0, 0, 0, 20]
+          },
           arabic2Header:{
             font: 'DroidKufi',
             alignment: 'left',
+          },
+          arabic3Header:{
+            font: 'DroidKufi',
+            alignment: 'left',
+            margin: [0, 5, 0, 0]
           },
           genCodeHeader:{
             color: '#FF1E00',
@@ -191,9 +210,16 @@ const showReport = (page,genCode) => {
             font: 'DroidKufi',
             alignment: 'right',
           },
+        },
+        images: {
+          logo:'http://localhost:3111/img/logo.jpg'
         }
       }
-      pdfMake.createPdf(docDefinition).print();
+      const fetches = [];
+      fetches.push(fetchImage(docDefinition.images.logo).then(data => { docDefinition.images.logo = data; }));
+      Promise.all(fetches).then(() => {
+        pdfMake.createPdf(docDefinition).print();
+      });
     })
   }
 
@@ -220,4 +246,21 @@ const showReport = (page,genCode) => {
     newDate.setHours(hours - offset);
 
     return newDate;   
+}
+
+function fetchImage (uri) {
+  return new Promise(function (resolve, reject) {
+    const image = new window.Image();
+    image.onload = function () {
+      var canvas = document.createElement('canvas');
+      canvas.width = this.naturalWidth;
+      canvas.height = this.naturalHeight;
+      canvas.getContext('2d').drawImage(this, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    image.onerror = function (params) {
+      reject(new Error('Cannot fetch image ' + uri + '.'));
+    };
+    image.src = uri;
+  });
 }
