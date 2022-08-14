@@ -94,6 +94,12 @@ const showReport = (page,genCode) => {
               height: 80,
             },
             {text: flip("شركة مخازن الريحان"), style: 'arabic3Header'},
+            {
+              height:40,
+              width:100,
+              image: 'barcode',
+              style:"sub7Header"
+            },
           ]},
           {text: 'Transfer Order', style: 'header'},
           {columns: [
@@ -138,10 +144,7 @@ const showReport = (page,genCode) => {
           ],style:"footerStyle"},
         ],
         footer:function(currentPage, pageCount) { 
-          return {columns: [
-            {text:currentPage.toString() + ' of ' + pageCount,style:"sub6Header"},
-            {text:`${results.results[0].GenCode}`,style:"sub5Header"},
-          ]}      
+          return currentPage.toString() + ' of ' + pageCount;     
         },
         styles: {
           header: {
@@ -178,6 +181,9 @@ const showReport = (page,genCode) => {
             font: 'Roboto',
             alignment: 'left',
             bold: true,
+          },
+          sub7Header: {
+            alignment: 'right',
           },
           arabic2Header:{
             font: 'DroidKufi',
@@ -219,11 +225,13 @@ const showReport = (page,genCode) => {
           }
         },
         images: {
-          logo:'http://localhost:3111/img/logo.jpg'
+          logo:'http://localhost:3111/img/logo.jpg',
+          barcode:`${results.results[0].GenCode}`
         }
       }
       const fetches = [];
       fetches.push(fetchImage(docDefinition.images.logo).then(data => { docDefinition.images.logo = data; }));
+      fetches.push(textToBase64Barcode(docDefinition.images.barcode).then(data => { docDefinition.images.barcode = data; }));
       Promise.all(fetches).then(() => {
         pdfMake.createPdf(docDefinition).print();
       });
@@ -259,7 +267,7 @@ function fetchImage (uri) {
   return new Promise(function (resolve, reject) {
     const image = new window.Image();
     image.onload = function () {
-      var canvas = document.createElement('canvas');
+      let canvas = document.createElement('canvas');
       canvas.width = this.naturalWidth;
       canvas.height = this.naturalHeight;
       canvas.getContext('2d').drawImage(this, 0, 0);
@@ -270,4 +278,12 @@ function fetchImage (uri) {
     };
     image.src = uri;
   });
+}
+
+function textToBase64Barcode(text){
+  return new Promise((resolve,reject) => {
+    let canvas = document.createElement("canvas");
+    JsBarcode(canvas, text, {format: "CODE39"});
+    resolve(canvas.toDataURL("image/png"))
+  })
 }
