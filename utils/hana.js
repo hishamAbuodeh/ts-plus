@@ -7,6 +7,11 @@ const HANA_HOST = process.env.HANA_HOST;
 const HANA_USER = process.env.HANA_USER;
 const HANA_PASSWORD = process.env.HANA_PASSWORD;
 const HANA_DATABASE = process.env.HANA_DATABASE;
+const HANA_STOCK_REQUEST_PROCEDURE = process.env.HANA_STOCK_REQUEST_PROCEDURE;
+const HANA_STOCK_TRANSFER_PROCEDURE = process.env.HANA_STOCK_TRANSFER_PROCEDURE;
+const HANA_WHS_PROCEDURE = process.env.HANA_WHS_PROCEDURE;
+const HANA_PO_PROCEDURE = process.env.HANA_PO_PROCEDURE;
+const HANA_REQUEST_RECEIPT_PROCEDURE = process.env.HANA_REQUEST_RECEIPT_PROCEDURE;
 
 const hanaConfig = {
   serverNode: `${HANA_HOST}:30015`,
@@ -18,12 +23,17 @@ const hanaConfig = {
 const connection = hana.createConnection();
 
 const getItems = async (whs) => {
-  const procedureStatment = `CALL "${HANA_DATABASE}"."SP_DIPS_StockReq" ('${whs}')`;
+  const procedureStatment = `CALL "${HANA_DATABASE}"."${HANA_STOCK_REQUEST_PROCEDURE}" ('${whs}')`;
+  return execute(procedureStatment);
+};
+
+const getRequestReceipt = async (genCode) => {
+  const procedureStatment = `CALL "${HANA_DATABASE}"."${HANA_REQUEST_RECEIPT_PROCEDURE}" ('${genCode}')`;
   return execute(procedureStatment);
 };
 
 const getItemsTransfer = async (whs,from) => {
-  const procedureStatment = `CALL "${HANA_DATABASE}"."SP_DIPS_Transfer" ('${whs}','${from}')`
+  const procedureStatment = `CALL "${HANA_DATABASE}"."${HANA_STOCK_TRANSFER_PROCEDURE}" ('${whs}','${from}')`
   const results = await execute(procedureStatment)
   if(results.length > 0){
     return results.map(item => {
@@ -42,7 +52,7 @@ const warehouseMatch = async (whs) => {
         console.log(err)
         reject()
       };
-      connection.exec(`Select * from "${HANA_DATABASE}"."WHS_REP"`, (err, result) => {
+      connection.exec(`Select * from "${HANA_DATABASE}"."${HANA_WHS_PROCEDURE}"`, (err, result) => {
           resolve(result)
           connection.disconnect();
       });
@@ -72,7 +82,7 @@ const warehouseMatch = async (whs) => {
 };
 
 const getPOitems = async (whs,number) => { 
-  const procedureStatment = `CALL "${HANA_DATABASE}"."SP_DIPS_PurchaseOrder"  ('${whs}','${number}')`;
+  const procedureStatment = `CALL "${HANA_DATABASE}"."${HANA_PO_PROCEDURE}"  ('${whs}','${number}')`;
   return execute(procedureStatment);
 };
 
@@ -105,5 +115,6 @@ module.exports = {
   getItems,
   warehouseMatch,
   getItemsTransfer,
-  getPOitems
+  getPOitems,
+  getRequestReceipt
 };

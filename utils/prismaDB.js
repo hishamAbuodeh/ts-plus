@@ -777,6 +777,70 @@ const updateStatus = async (id,arr) => {
     })
 }
 
+const upsertAllRec = async (rec,arr) => {
+    return new Promise((resolve,reject) => {
+        upsertRecord(rec)
+        .catch((e) => {
+            console.log(e)
+            reject()
+        })
+        .finally(async () => {
+            await prisma.$disconnect()
+            arr.push('added')
+            resolve()
+        })
+    })
+}
+
+const upsertRecord = async (rec) => {
+    return await prisma.rquestOrderhistory.upsert({
+        where: {
+          id: await getID(rec.GenCode,rec.ItemCode)
+        },
+        update: {
+          Order:parseFloat(rec.Order)
+        },
+        create: {
+            ItemCode:rec.ItemCode,
+            ItemName:rec.ItemName,
+            ListNum:0,
+            ListName:"added Line",
+            OnHand:rec.STOCK,
+            MinStock:0.0000,
+            MaxStock:0.0000,
+            Price:0.0000,
+            BuyUnitMsr:rec.SalUnitMsr,
+            WhsCode:rec.WhsCode,
+            WhsName:rec.WhsName,
+            CodeBars:"no bar code",
+            ConvFactor:1.0000,
+            Warehousefrom:rec.Warehousefrom,
+            Order:rec.Order,
+            Status: "approved",
+            GenCode: rec.GenCode
+        },
+      })
+}
+
+const getID = async(genCode,itemCode) => {
+    let results = await prisma.rquestOrderhistory.findMany({
+        where:{
+            GenCode:genCode,
+            ItemCode:itemCode
+        }
+    }).catch((e) => {
+        console.log(e)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+    if(results.length > 0){
+        return results[0].id
+    }else{
+        return 0
+    }
+}
+
 const updateReqRecStatus = async (id,arr) => {
     return new Promise((resolve,reject) => {
         updateReqRecRecordStatus(id)
@@ -1286,5 +1350,6 @@ module.exports = {
     findAllDelivered,
     addToDeliverHis,
     getGenCodeTransfer,
-    getAllTransferGencodes
+    getAllTransferGencodes,
+    upsertAllRec
 }
