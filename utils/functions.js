@@ -246,31 +246,51 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
                         reject()
                     }
                     console.log("Transaction committed.");
-                    if(page != "receipt"){
-                        prisma.updateStatus(rec.id,arr)
-                        .then(() => {
-                            if(arr.length == length){
-                                pool.close();
-                                resolve();
-                            }
-                        })
-                        .catch(err => {
-                            reject()
-                        })
-                    }else{
-                        prisma.updateReqRecStatus(rec.id,arr)
-                        .then(() => {
-                            if(arr.length == length){
-                                pool.close();
-                                resolve();
-                            }
-                        })
-                        .catch(err => {
-                            reject()
-                        })
-                    }
+                    checkSavedInRequestSql(rec.ItemCode,rec.GenCode,pool)
+                    .then(() => {
+                        if(page != "receipt"){
+                            prisma.updateStatus(rec.id,arr)
+                            .then(() => {
+                                if(arr.length == length){
+                                    pool.close();
+                                    resolve();
+                                }
+                            })
+                            .catch(err => {
+                                reject()
+                            })
+                        }else{
+                            prisma.updateReqRecStatus(rec.id,arr)
+                            .then(() => {
+                                if(arr.length == length){
+                                    pool.close();
+                                    resolve();
+                                }
+                            })
+                            .catch(err => {
+                                reject()
+                            })
+                        }
+                    })
+                    .catch(() => {
+                        reject()
+                    })
                 });
             })
+        })
+    })
+}
+
+const checkSavedInRequestSql = async(itemCode,genCode,pool) => {
+    const queryStatment = `select * from ${REQUSET_TRANSFER_TABLE} where ItemCode = '${itemCode}' and GenCode = '${genCode}'`
+    return new Promise((resolve,reject) => {
+        pool.request().query(queryStatment)
+        .then(result => {
+            if(result.recordset.length > 0){
+                resolve()
+            }else{
+                reject()
+            }
         })
     })
 }
@@ -447,18 +467,38 @@ const startPOtransaction = async (pool,rec,userName,arr,length) => {
                         reject()
                     }
                     console.log("Transaction committed.");
-                    prisma.updatePOstatus(rec.id,arr)
+                    checkSavedInPOtSql(rec.ItemCode,rec.DocNum,pool)
                     .then(() => {
-                        if(arr.length == length){
-                            pool.close();
-                            resolve();
-                        }
+                        prisma.updatePOstatus(rec.id,arr)
+                        .then(() => {
+                            if(arr.length == length){
+                                pool.close();
+                                resolve();
+                            }
+                        })
+                        .catch(err => {
+                            reject()
+                        })
                     })
-                    .catch(err => {
+                    .catch(() => {
                         reject()
                     })
                 });
             })
+        })
+    })
+}
+
+const checkSavedInPOtSql = async(itemCode,docNum,pool) => {
+    const queryStatment = `select * from ${REQUSET_TRANSFER_TABLE} where ItemCode = '${itemCode}' and DocNum = ${docNum}`
+    return new Promise((resolve,reject) => {
+        pool.request().query(queryStatment)
+        .then(result => {
+            if(result.recordset.length > 0){
+                resolve()
+            }else{
+                reject()
+            }
         })
     })
 }
