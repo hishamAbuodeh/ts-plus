@@ -87,71 +87,76 @@ const showReport = (page,genCode) => {
       }
       let docDefinition = {
         content: [
+          {columns: [
+            {
+              image: 'logo',
+              width: 100,
+              height: 80,
+            },
+            {text: flip("شركة مخازن الريحان"), style: 'arabic3Header'},
+            {
+              height:40,
+              width:100,
+              image: 'barcode',
+              style:"sub7Header"
+            },
+          ]},
           {text: 'Transfer Order', style: 'header'},
           {columns: [
+            {text: `Date: ${date}`, style: 'sub6Header'},
+            {text: `${results.results[0].GenCode}`, style: 'genCodeHeader'}
+          ]},
+          {text: '_______________________________________________________________________________________________', style: 'sub4Header'},
+          {columns: [
             {width:110,text: `From Warehouse: `, style: 'subHeader'},
-            {width:70,text: [
-              // {text: `Code: `, style: 'sub2Header'},
-              {text: `${results.results[0].WarehouseFrom}`, style: 'sub2Header'},
-            ], style: 'subHeader'}, 
+            {width:50,text: [
+              {text: `(${results.results[0].WarehouseFrom})`, style: 'sub2Header'},
+            ], style: 'subHeader'},
             {text: [
-              // {text: `Name: `, style: 'sub2Header'},
               {text: `${flip(results.from)}`, style: 'arabic2Header'},
             ], style: 'sub3Header'},
           ]},
           {columns: [
             {width:110,text: `To Warehouse: `, style: 'subHeader'},
-            {width:70,text: [
-              // {text: `Code: `, style: 'sub2Header'},
-              {text: `${results.results[0].WarehouseTo}`, style: 'sub2Header'},
+            {width:50,text: [
+              {text: `(${results.results[0].WarehouseTo})`, style: 'sub2Header'},
             ], style: 'subHeader'}, 
             {text: [
-              // {text: `Name: `, style: 'sub2Header'},
               {text: `${flip(results.to)}`, style: 'arabic2Header'},
             ], style: 'sub3Header'},
           ]},
-          {columns: [
-            {text: [
-              {text: `Order Code: `, style: 'sub2Header'},
-              {text: `${results.results[0].GenCode}`, style: 'genCodeHeader'}
-            ], style: 'subHeader'},
-            {text: `Document Date: ${date}`, style: 'subHeader'},
-            {text: `Time: ${time}`, style: 'subHeader'},
-          ]},
-          ,
-          {text: `Received Date:             /               /`, style: 'subHeader'},  
           {
             style: 'tableStyle',
             table: {
               body: tableBody
             }
           },
-          {
-            columns: [
-              {
-                text: "Delivered Person", style: 'subHeader'
-              },
-              {
-                text: "Received Person", style: 'subHeader'
-              },
-              {
-                text: "Branch Manager", style: 'subHeader'
-              }
-            ]
-          },
+          {columns: [
+            {
+              text: "Delivered Person", style: 'subHeader'
+            },
+            {
+              text: "Received Person", style: 'subHeader'
+            },
+            {
+              text: "Branch Manager", style: 'subHeader'
+            }
+          ],style:"footerStyle"},
         ],
+        footer:function(currentPage, pageCount) { 
+          return currentPage.toString() + ' of ' + pageCount;     
+        },
         styles: {
           header: {
             font: 'Roboto',
             alignment: 'center',
             fontSize: 22,
             bold: true,
-            margin: [0, 0, 0, 30]
+            margin: [0, -38, 0, 20]
           },
           subHeader: {
             font: 'Roboto',
             bold: true,
-            margin: [0, 10, 0, 10]
           },
           sub2Header: {
             font: 'Roboto',
@@ -160,16 +165,40 @@ const showReport = (page,genCode) => {
           sub3Header: {
             font: 'Roboto',
             bold: true,
-            margin: [0, 5, 0, 10]
+            margin: [0, -6, 0, 0],
+          },
+          sub4Header: {
+            font: 'Roboto',
+            bold: true,
+            margin: [0, -10, 0, 20]
+          },
+          sub5Header: {
+            font: 'Roboto',
+            alignment: 'right',
+            bold: true,
+          },
+          sub6Header: {
+            font: 'Roboto',
+            alignment: 'left',
+            bold: true,
+          },
+          sub7Header: {
+            alignment: 'right',
           },
           arabic2Header:{
             font: 'DroidKufi',
             alignment: 'left',
           },
+          arabic3Header:{
+            font: 'DroidKufi',
+            alignment: 'left',
+            margin: [0, 5, 0, 0]
+          },
           genCodeHeader:{
             color: '#FF1E00',
             font: 'Roboto',
             bold: true,
+            alignment: 'right',
           },
           tableStyle: {
             margin: [0, 20, 0, 30]
@@ -191,9 +220,21 @@ const showReport = (page,genCode) => {
             font: 'DroidKufi',
             alignment: 'right',
           },
+          footerStyle:{
+            alignment: 'center',
+          }
+        },
+        images: {
+          logo:'http://localhost:3111/img/logo.jpg',
+          barcode:`${results.results[0].GenCode}`
         }
       }
-      pdfMake.createPdf(docDefinition).print();
+      const fetches = [];
+      fetches.push(fetchImage(docDefinition.images.logo).then(data => { docDefinition.images.logo = data; }));
+      fetches.push(textToBase64Barcode(docDefinition.images.barcode).then(data => { docDefinition.images.barcode = data; }));
+      Promise.all(fetches).then(() => {
+        pdfMake.createPdf(docDefinition).print();
+      });
     })
   }
 
@@ -220,4 +261,29 @@ const showReport = (page,genCode) => {
     newDate.setHours(hours - offset);
 
     return newDate;   
+}
+
+function fetchImage (uri) {
+  return new Promise(function (resolve, reject) {
+    const image = new window.Image();
+    image.onload = function () {
+      let canvas = document.createElement('canvas');
+      canvas.width = this.naturalWidth;
+      canvas.height = this.naturalHeight;
+      canvas.getContext('2d').drawImage(this, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    image.onerror = function (params) {
+      reject(new Error('Cannot fetch image ' + uri + '.'));
+    };
+    image.src = uri;
+  });
+}
+
+function textToBase64Barcode(text){
+  return new Promise((resolve,reject) => {
+    let canvas = document.createElement("canvas");
+    JsBarcode(canvas, text, {format: "CODE39"});
+    resolve(canvas.toDataURL("image/png"))
+  })
 }

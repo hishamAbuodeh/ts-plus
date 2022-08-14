@@ -8,6 +8,7 @@ const file = require('./readAndWriteFiles')
 const USERS_TABLE = process.env.USERS_TABLE
 const USERS_WHS_TABLE = process.env.USERS_WHS_TABLE
 const REQUSET_TRANSFER_TABLE = process.env.REQUSET_TRANSFER_TABLE
+const RECEIVING_PO_TABLE= process.env.RECEIVING_PO_TABLE
 const SQL_REQUEST_TRANSFER_PROCEDURE = process.env.SQL_REQUEST_TRANSFER_PROCEDURE
 const SQL_RECEIVING_RETURNPO_PROCEDURE = process.env.SQL_RECEIVING_RETURNPO_PROCEDURE
 const SQL_RECEIVINGPO_PROCEDURE = process.env.SQL_RECEIVINGPO_PROCEDURE
@@ -246,31 +247,51 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
                         reject()
                     }
                     console.log("Transaction committed.");
-                    if(page != "receipt"){
-                        prisma.updateStatus(rec.id,arr)
-                        .then(() => {
-                            if(arr.length == length){
-                                pool.close();
-                                resolve();
-                            }
-                        })
-                        .catch(err => {
-                            reject()
-                        })
-                    }else{
-                        prisma.updateReqRecStatus(rec.id,arr)
-                        .then(() => {
-                            if(arr.length == length){
-                                pool.close();
-                                resolve();
-                            }
-                        })
-                        .catch(err => {
-                            reject()
-                        })
-                    }
+                    checkSavedInRequestSql(rec.ItemCode,rec.GenCode,pool)
+                    .then(() => {
+                        if(page != "receipt"){
+                            prisma.updateStatus(rec.id,arr)
+                            .then(() => {
+                                if(arr.length == length){
+                                    pool.close();
+                                    resolve();
+                                }
+                            })
+                            .catch(err => {
+                                reject()
+                            })
+                        }else{
+                            prisma.updateReqRecStatus(rec.id,arr)
+                            .then(() => {
+                                if(arr.length == length){
+                                    pool.close();
+                                    resolve();
+                                }
+                            })
+                            .catch(err => {
+                                reject()
+                            })
+                        }
+                    })
+                    .catch(() => {
+                        reject()
+                    })
                 });
             })
+        })
+    })
+}
+
+const checkSavedInRequestSql = async(itemCode,genCode,pool) => {
+    const queryStatment = `select * from ${REQUSET_TRANSFER_TABLE} where ItemCode = '${itemCode}' and GenCode = '${genCode}'`
+    return new Promise((resolve,reject) => {
+        pool.request().query(queryStatment)
+        .then(result => {
+            if(result.recordset.length > 0){
+                resolve()
+            }else{
+                reject()
+            }
         })
     })
 }
@@ -447,18 +468,38 @@ const startPOtransaction = async (pool,rec,userName,arr,length) => {
                         reject()
                     }
                     console.log("Transaction committed.");
-                    prisma.updatePOstatus(rec.id,arr)
+                    checkSavedInPOtSql(rec.ItemCode,rec.DocNum,pool)
                     .then(() => {
-                        if(arr.length == length){
-                            pool.close();
-                            resolve();
-                        }
+                        prisma.updatePOstatus(rec.id,arr)
+                        .then(() => {
+                            if(arr.length == length){
+                                pool.close();
+                                resolve();
+                            }
+                        })
+                        .catch(err => {
+                            reject()
+                        })
                     })
-                    .catch(err => {
+                    .catch(() => {
                         reject()
                     })
                 });
             })
+        })
+    })
+}
+
+const checkSavedInPOtSql = async(itemCode,docNum,pool) => {
+    const queryStatment = `select * from ${RECEIVING_PO_TABLE} where ItemCode = '${itemCode}' and DocNum = ${docNum}`
+    return new Promise((resolve,reject) => {
+        pool.request().query(queryStatment)
+        .then(result => {
+            if(result.recordset.length > 0){
+                resolve()
+            }else{
+                reject()
+            }
         })
     })
 }

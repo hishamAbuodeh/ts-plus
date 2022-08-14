@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "prisma generate && node server.js",
-    "build": "prisma generate && npx prisma migrate dev --name init && node server.js",
+    "build": "prisma generate && npx prisma migrate dev --name init && node service.js",
     "migrate": "npx prisma migrate dev --name init",
     "generate": "prisma generate"
   },
