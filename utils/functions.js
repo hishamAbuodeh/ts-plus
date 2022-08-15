@@ -491,7 +491,7 @@ const startPOtransaction = async (pool,rec,userName,arr,length) => {
 }
 
 const checkSavedInPOtSql = async(itemCode,docNum,pool) => {
-    const queryStatment = `select * from ${RECEIVING_PO_TABLE} where ItemCode = '${itemCode}' and DocNum = ${docNum}`
+    const queryStatment = `select * from ${RECEIVING_PO_TABLE} where ItemCode = '${itemCode}' and DocNum = ${docNum} and SAP_Processed = 0`
     return new Promise((resolve,reject) => {
         pool.request().query(queryStatment)
         .then(result => {
@@ -596,17 +596,22 @@ const sendDeliverRec = async(rec,arr,pool,length) => {
         try{
             pool.request().query(queryStatment)
             .then(result => {
-                console.log('table record updated')
-                prisma.updateReqRecStatus(rec.id,arr)
-                .then(() => {
-                    if(arr.length == length){
-                        pool.close();
-                        resolve();
-                    }
-                })
-                .catch(err => {
+                if(result.rowsAffected.length > 0){
+                    console.log('table record updated')
+                    prisma.updateReqRecStatus(rec.id,arr)
+                    .then(() => {
+                        if(arr.length == length){
+                            pool.close();
+                            resolve();
+                        }
+                    })
+                    .catch(err => {
+                        reject()
+                    })
+                }else{
                     reject()
-                })
+                    console.log(result.rowsAffected)
+                }
             })
         }catch(err){
             reject()
