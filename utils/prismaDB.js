@@ -282,6 +282,25 @@ const findAllSaved = async(gencode) => {
     }
 }
 
+const findAllReceiptSaved = async(gencode) => {
+    const records = await prisma.rquestOrderhistory.findMany({
+        orderBy: [
+            {
+              createdAt: 'desc',
+            }
+        ],
+        where:{
+            GenCode: gencode,
+            Status: "delivered"
+        }
+    })
+    if(records.length > 0){
+        return records
+    }else{
+        return
+    }
+}
+
 const findAllSent = async(genCode) => {
     const records = await prisma.rquestOrderhistory.findMany({
         where: {
@@ -798,7 +817,8 @@ const upsertRecord = async (rec) => {
           id: await getID(rec.GenCode,rec.ItemCode)
         },
         update: {
-          Order:parseFloat(rec.Order)
+          Order:parseFloat(rec.Order),
+          Status: "delivered"
         },
         create: {
             ItemCode:rec.ItemCode,
@@ -816,7 +836,7 @@ const upsertRecord = async (rec) => {
             ConvFactor:1.0000,
             Warehousefrom:rec.Warehousefrom,
             Order:rec.Order,
-            Status: "approved",
+            Status: "delivered",
             GenCode: rec.GenCode
         },
       })
@@ -1351,5 +1371,6 @@ module.exports = {
     addToDeliverHis,
     getGenCodeTransfer,
     getAllTransferGencodes,
-    upsertAllRec
+    upsertAllRec,
+    findAllReceiptSaved
 }

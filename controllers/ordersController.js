@@ -212,7 +212,7 @@ const syncReqReceiptData = async(req,res) => {
     const {genCode} = req.params
     if(req.session.loggedin)
     {
-        const data = await prisma.findAllSaved(genCode)
+        const data = await prisma.findAllReceiptSaved(genCode)
         if(data){
             const mappedData = data.map(rec => {
                 return {
