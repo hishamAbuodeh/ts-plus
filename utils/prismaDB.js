@@ -726,13 +726,18 @@ const updateRecordStatus = async (recordID) => {
     })
 }
 
-const updateinHestoricalOrder = async (id,order) => {
-    updateTransferToHes(id,order)
-    .catch((e) => {
-        console.log(e)
-    })
-    .finally(async () => {
-        await prisma.$disconnect()
+const updateinHestoricalOrder = async (id,order,arr) => {
+    new Promise((resolve,reject) => {
+        updateTransferToHes(id,order)
+        .catch((e) => {
+            console.log(e)
+            reject()
+        })
+        .finally(async () => {
+            arr.push('added')
+            await prisma.$disconnect()
+            resolve()
+        })
     })
 }
 
@@ -1328,6 +1333,24 @@ const createPOhisRecord = async (record) => {
       }
 }
 
+const rejectRequests = async (genCode) => {
+    await prisma.rquestOrderhistory.updateMany({
+        where: {
+          GenCode:genCode,
+          Status:"approved"
+        },
+        data: {
+            Status:"rejected",
+        },
+    })
+    .catch((e) => {
+        console.log(e)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
 module.exports = {
     createRecords,
     getDataLocal,
@@ -1372,5 +1395,6 @@ module.exports = {
     getGenCodeTransfer,
     getAllTransferGencodes,
     upsertAllRec,
-    findAllReceiptSaved
+    findAllReceiptSaved,
+    rejectRequests
 }

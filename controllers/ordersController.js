@@ -344,10 +344,28 @@ const submit = async (req,res) =>{
                     start()
                 }else if(page == 'receipt'){
                     prisma.deleteAllInReqReceipt().then(() => {
-                        records.forEach(rec => {
-                            const id = rec.id
-                            const order = rec.Order
-                            prisma.updateinHestoricalOrder(id,order)
+                        const genCode = records[0].GenCode
+                        new Promise((resolve,reject) => {
+                            const length = records.length
+                            const arr = []
+                            records.forEach(rec => {
+                                const id = rec.id
+                                const order = rec.Order
+                                prisma.updateinHestoricalOrder(id,order,arr)
+                                .then(() => {
+                                    if(arr.length == length){
+                                        resolve()
+                                    }
+                                })
+                                .catch(() => {
+                                    reject()
+                                })
+                            })
+                        })
+                        .then(() => {
+                            prisma.rejectRequests(genCode)
+                        }).catch(() => {
+                            console.log('could not save')
                         })
                     })
                 }
