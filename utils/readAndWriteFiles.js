@@ -1,23 +1,23 @@
 const fs = require('fs');
 
-const getGenCode = async (whs,path) => {
+const getGenCode = async (whs,path,empNo) => {
     try {
         const postNumber = fs.readFileSync(path, 'utf8');
-        return combineNumber(whs,postNumber)
+        return combineNumber(whs,postNumber,empNo)
     } catch (err) {
         console.log(err)
         const postNumber = '0'
         updateGenCode(postNumber,path)
-        return getGenCode(whs,path)
+        return getGenCode(whs,path,empNo)
     }
 }
 
-const previousGetGenCode = async (whs,path) => {
+const previousGetGenCode = async (whs,path,empNo) => {
     try {
         let postNumber = fs.readFileSync(path, 'utf8');
         postNumber = parseInt(postNumber) - 1
         postNumber = postNumber.toString()
-        return combineNumber(whs,postNumber)
+        return combineNumber(whs,postNumber,empNo)
     } catch (err) {
         console.log(err)
     }
@@ -34,8 +34,8 @@ const updateGenCode = async (postNumber,path) => {
     }
 }
 
-const combineNumber = (whs,postNumber) => {
-    return whs + "-" + postNumber
+const combineNumber = (whs,postNumber,empNo) => {
+    return whs + "-" + empNo + "-" + postNumber
 
 }
 

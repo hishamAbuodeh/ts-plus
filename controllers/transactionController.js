@@ -37,7 +37,7 @@ const syncData = async (req,res) => {
         if(page == "goTransfer"){
             from = req.session.from
         }
-        const msg = await functions.getAndSaveData(whs,page,from)
+        const msg = await functions.getAndSaveData(whs,page,from,req.session.employeeNO)
         if(msg == 'done'){
             res.send('done')
         }else{

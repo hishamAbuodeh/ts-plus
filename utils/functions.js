@@ -65,13 +65,13 @@ const getTransferReq = async (genCode,warehousefrom) => {
     }
 }
 
-const getAndSaveData = async (whs,page,value) => {
+const getAndSaveData = async (whs,page,value,employeeNO) => {
     try{
         return new Promise((resolve,reject) => {
             let msg
             if(page == "goRequest"){
                 msg = hana.getItems(whs).then(results => {
-                    return prisma.createRecords(results,page)
+                    return prisma.createRecords(results,page,employeeNO)
                 })
             }else if(page == "goTransfer"){
                 const start = async () => {
@@ -79,7 +79,7 @@ const getAndSaveData = async (whs,page,value) => {
                     match = nameToCode(match)
                     const from = match[value]
                     return hana.getItemsTransfer(whs,from).then(results => {
-                        return prisma.createRecords(results,page)
+                        return prisma.createRecords(results,page,employeeNO)
                     })
                 }
                 msg = start()
@@ -404,7 +404,7 @@ const syncPOData = async (results) => {
     } 
 }
 
-const sendPOtoSQL = async (records,userName) => {
+const sendPOtoSQL = async (records,userName,gencode) => {
     return new Promise((resolve,reject) => {
         const start = async () => {
             try{
@@ -413,7 +413,7 @@ const sendPOtoSQL = async (records,userName) => {
                 const arr = []
                 records.forEach(rec => {
                     if((rec.Status == 'pending') && (rec.Order > 0)){
-                        startPOtransaction(pool,rec,userName,arr,length)
+                        startPOtransaction(pool,rec,userName,arr,length,gencode)
                         .then(() => {
                             resolve()
                         })
@@ -436,7 +436,7 @@ const sendPOtoSQL = async (records,userName) => {
     })
 }
 
-const startPOtransaction = async (pool,rec,userName,arr,length) => {
+const startPOtransaction = async (pool,rec,userName,arr,length,gencode) => {
     const transaction = await sql.getTransaction(pool);
     return new Promise((resolve,reject) => {
         transaction.begin((err) => {
@@ -457,6 +457,7 @@ const startPOtransaction = async (pool,rec,userName,arr,length) => {
             .input("OpenQty",rec.OpenQty)
             .input("RecQty",rec.Order)
             .input("username",userName)
+            .input("GenCode",gencode)
             .execute(SQL_RECEIVINGPO_PROCEDURE,(err,result) => {
                 if(err){
                     console.log('excute',err)

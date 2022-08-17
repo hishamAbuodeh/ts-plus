@@ -41,7 +41,7 @@ const submit = async (req,res) =>{
     const {note} = req.params
     try{
         let records = await prisma.findReturnList()
-        const genCode = await file.getGenCode(req.session.whsCode,'./refNumber.txt')
+        const genCode = await file.getGenCode(req.session.whsCode,'./refNumber.txt',req.session.employeeNO)
         if(records.length > 0){
             functions.sendReturnItems(records,req.session.username,note,genCode)
             .then(() => {
@@ -79,7 +79,7 @@ const report = async (req,res) => {
 
 const allReport = async (req,res) => {
     try{
-        let genCode = await file.previousGetGenCode(req.session.whsCode,'./refNumber.txt')
+        let genCode = await file.previousGetGenCode(req.session.whsCode,'./refNumber.txt',req.session.employeeNO)
         let records = await prisma.findAllSentReturn(genCode)
         res.render('partials/retReport',{results:records})
     }catch(err){

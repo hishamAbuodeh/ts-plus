@@ -28,6 +28,7 @@ const validate = async (req,res) => {
                 req.session.countingAvailable = whsCode[0].CountingAvailable
                 req.session.warehouseName = whsCode[0].WarehouseName
                 req.session.allowed = whsCode[0].Allowed
+                req.session.employeeNO = "123456" //whsCode[0].EmployeeNO
                 res.send({msg : 'validate'})
             }else{
                 res.send({msg: 'error'})
