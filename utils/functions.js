@@ -457,7 +457,7 @@ const startPOtransaction = async (pool,rec,userName,arr,length,gencode) => {
             .input("OpenQty",rec.OpenQty)
             .input("RecQty",rec.Order)
             .input("username",userName)
-            .input("GenCode",gencode)
+            .input("RefDocNo",gencode)
             .execute(SQL_RECEIVINGPO_PROCEDURE,(err,result) => {
                 if(err){
                     console.log('excute',err)
