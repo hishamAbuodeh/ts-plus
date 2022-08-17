@@ -727,7 +727,7 @@ const updateRecordStatus = async (recordID) => {
 }
 
 const updateinHestoricalOrder = async (id,order,arr) => {
-    new Promise((resolve,reject) => {
+    return new Promise((resolve,reject) => {
         updateTransferToHes(id,order)
         .catch((e) => {
             console.log(e)
