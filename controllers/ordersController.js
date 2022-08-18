@@ -7,7 +7,7 @@ const sendEmail = require('../utils/email')
 const requestPage = async (req,res) => {
     if(req.session.loggedin)
     {
-        prisma.getDataLocal(req.session.whsCode).then(results => {
+        prisma.getDataLocal(req.session.whsCode,req.session.employeeNO).then(results => {
             const start = async () => {
                 const value = await file.getlabel()
                 const data = {
@@ -212,7 +212,7 @@ const syncReqReceiptData = async(req,res) => {
     const {genCode} = req.params
     if(req.session.loggedin)
     {
-        const data = await prisma.findAllSaved(genCode)
+        const data = await prisma.findAllReceiptSaved(genCode)
         if(data){
             const mappedData = data.map(rec => {
                 return {
@@ -268,7 +268,7 @@ const saveChoose = async(req,res) => {
 const transferPage = async (req,res) => {
     if(req.session.loggedin)
     {
-        prisma.getDataLocal(req.session.whsCode).then(results => {
+        prisma.getDataLocal(req.session.whsCode,req.session.employeeNO).then(results => {
             const start = async() => {
                 const data = {
                     results,
@@ -344,10 +344,28 @@ const submit = async (req,res) =>{
                     start()
                 }else if(page == 'receipt'){
                     prisma.deleteAllInReqReceipt().then(() => {
-                        records.forEach(rec => {
-                            const id = rec.id
-                            const order = rec.Order
-                            prisma.updateinHestoricalOrder(id,order)
+                        const genCode = records[0].GenCode
+                        new Promise((resolve,reject) => {
+                            const length = records.length
+                            const arr = []
+                            records.forEach(rec => {
+                                const id = rec.id
+                                const order = rec.Order
+                                prisma.updateinHestoricalOrder(id,order,arr)
+                                .then(() => {
+                                    if(arr.length == length){
+                                        resolve()
+                                    }
+                                })
+                                .catch(() => {
+                                    reject()
+                                })
+                            })
+                        })
+                        .then(() => {
+                            prisma.rejectRequests(genCode)
+                        }).catch(() => {
+                            console.log('could not save')
                         })
                     })
                 }
@@ -423,7 +441,7 @@ const allReport = async (req,res) => {
     const {page,genCode} = req.params
     try{
         if(page != 'receipt' && page != 'deliver'){
-            let genCode = await file.previousGetGenCode(req.session.whsCode,'./postNumber.txt')
+            let genCode = await file.previousGetGenCode(req.session.whsCode,'./postNumber.txt',req.session.employeeNO)
             let records = await prisma.findAllSent(genCode)
             res.render('partials/report',{results:records})
         }else if(page == 'receipt'){

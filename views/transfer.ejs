@@ -26,7 +26,7 @@
 </head>
 <body id="body" style="position: relative;width:100;height:100%;">
     <div>
-        <%- include("partials/navigationBtu") %>
+        <%- include("partials/navigationBtu",{pageName:"طلب تحويل"}) %>
     </div>
     <div>
         <%- include("partials/table",{info : {results : data.results, page : 'transfer'}}) %>

@@ -1,6 +1,7 @@
 const functions = require('../utils/functions');
 const hana = require('../utils/hana');
 const prisma = require('../utils/prismaDB');
+const file = require('../utils/readAndWriteFiles')
 
 const receiptPage = async (req,res) => {
     if(req.session.loggedin)
@@ -78,10 +79,13 @@ const allReport = async (req,res) => {
 const submit = async (req,res) =>{
     try{
         let records = await prisma.findAllPOs()
-        functions.sendPOtoSQL(records,req.session.username)
+        const no = await file.getPostNo('./POreceiving.txt')
+        const genCode = await file.getGenCode(req.session.whsCode,'./POreceiving.txt',req.session.employeeNO)
+        functions.sendPOtoSQL(records,req.session.username,genCode)
         .then(() => {
             res.send('done')
-            prisma.transferToReceHis(records)
+            prisma.transferToReceHis(records,genCode)
+            file.updateGenCode(no,'./POreceiving.txt')
         })
         .catch(err => {
             res.send('error')

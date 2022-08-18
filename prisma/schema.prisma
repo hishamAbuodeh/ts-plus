@@ -131,6 +131,7 @@ model receipthistory{
     UgpName String
     Order Decimal @db.Decimal(10,6)
     OpenQty Decimal @db.Decimal(10,6)
+    GenCode String
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }

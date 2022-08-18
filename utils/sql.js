@@ -13,9 +13,14 @@ const mssqlConfig = {
     server: MSSQL_LOCAL_ADDRESS,
     port: 1433,
     pool: {
-          max: 10,
+          max: 1000,
           min: 0,
-          idleTimeoutMillis: 30000
+          idleTimeoutMillis: 30000,
+          acquireTimeoutMillis: 30000,
+          createTimeoutMillis: 30000,
+          destroyTimeoutMillis: 30000,
+          reapIntervalMillis: 30000,
+          createRetryIntervalMillis: 30000,
     },
     options: {
           enableArithAbort: true,

@@ -2,21 +2,22 @@ const file = require('./readAndWriteFiles')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
-const createRecords = async (recordSet,page) => {
+const createRecords = async (recordSet,page,employeeNO) => {
     return new Promise((resolve,reject) => {
-        const genCode = file.getGenCode(recordSet[0].WhsCode,'./postNumber.txt')
+        const genCode = file.getGenCode(recordSet[0].WhsCode,'./postNumber.txt',employeeNO)
         resolve(genCode)
     }).then(genCode => {
-        const generateRecords = async () => {
-            const previousRecords = await findOrderList()
-            if(previousRecords.length > 0 && previousRecords[0].GenCode != genCode){
-                return completeTransfer(previousRecords,recordSet,page)
-            }else{
-                return deleteAndcreate(recordSet,genCode,page)
-            }
-        }
+        // const generateRecords = async () => {
+        //     const previousRecords = await findOrderList()
+        //     if(previousRecords.length > 0 && previousRecords[0].GenCode != genCode){
+        //         return completeTransfer(previousRecords,recordSet,page)
+        //     }else{
+        //         return deleteAndcreate(recordSet,genCode,page)
+        //     }
+        // }
         try{
-            return generateRecords()   
+            // return generateRecords()
+            return deleteAndcreate(recordSet,genCode,page)   
         }catch(err){
             resolve()
         }
@@ -107,20 +108,29 @@ const addToDeliverHis = async (mappedRecords) => {
 
 const deleteAndcreate = async (recordSet,genCode,page) => {
     return new Promise((resolve,reject) => {
-        const isExist = recordsExist(genCode)
-        if(isExist){
-            deleteAll(genCode)
-            .catch((e) => {
-                console.log(e)
-                reject()
-            })
-            .finally(async () => {
-                await prisma.$disconnect()
-                resolve()
-            })
-        }else{
+        // const isExist = recordsExist(genCode)
+        // if(isExist){
+        //     deleteAll(genCode)
+        //     .catch((e) => {
+        //         console.log(e)
+        //         reject()
+        //     })
+        //     .finally(async () => {
+        //         await prisma.$disconnect()
+        //         resolve()
+        //     })
+        // }else{
+        //     resolve()
+        // }
+        deleteAll()
+        .catch((e) => {
+            console.log(e)
+            reject()
+        })
+        .finally(async () => {
+            await prisma.$disconnect()
             resolve()
-        }
+        })
     }).then(() => {
         return createAll(recordSet,genCode,'requestItems',page)
     }).catch(err => {
@@ -162,54 +172,54 @@ const createAll = async (recordSet,genCode,model,page) => {
     })
 }
 
-const completeTransfer = async (previousRecords,recordSet,genCode,page) => {
-    return new Promise((resolve,reject) => {
-        previousRecords.forEach(rec => {
-            const start = async () =>{
+// const completeTransfer = async (previousRecords,recordSet,genCode,page) => {
+//     return new Promise((resolve,reject) => {
+//         previousRecords.forEach(rec => {
+//             const start = async () =>{
         
-                if(rec.Status == "sent"){
-                    await saveInHostrical(rec)
-                    .catch((e) => {
-                        console.log(e)
-                        reject()
-                    })
-                    .finally(async () => {
-                        await prisma.$disconnect()
-                    })
-                }
-            }
-            start()
-        })
-        resolve()
-    }).then(async () => {
-        return new Promise((resolve,reject) => {
-            const start = async () => {
-                const preGenCode = await file.previousGetGenCode(recordSet[0].WhsCode,'./postNumber.txt')
-                deleteAll(preGenCode)
-                .catch((e) => {
-                    console.log(e)
-                    reject()
-                })
-                .finally(async () => {
-                    await prisma.$disconnect()
-                    resolve()
-                })
-            }
-            start()
-        }).then(() => {
-            return createAll(recordSet,genCode,'requestItems',page)
-        })
-    })
-}
+//                 if(rec.Status == "sent"){
+//                     await saveInHostrical(rec)
+//                     .catch((e) => {
+//                         console.log(e)
+//                         reject()
+//                     })
+//                     .finally(async () => {
+//                         await prisma.$disconnect()
+//                     })
+//                 }
+//             }
+//             start()
+//         })
+//         resolve()
+//     }).then(async () => {
+//         return new Promise((resolve,reject) => {
+//             const start = async () => {
+//                 const preGenCode = await file.previousGetGenCode(recordSet[0].WhsCode,'./postNumber.txt')
+//                 deleteAll(preGenCode)
+//                 .catch((e) => {
+//                     console.log(e)
+//                     reject()
+//                 })
+//                 .finally(async () => {
+//                     await prisma.$disconnect()
+//                     resolve()
+//                 })
+//             }
+//             start()
+//         }).then(() => {
+//             return createAll(recordSet,genCode,'requestItems',page)
+//         })
+//     })
+// }
 
-const recordsExist = async (genCode) => {
-    const records = await findAll(genCode)
-    if(records?.length > 0){
-        return true
-    }else{
-        return false
-    }
-}
+// const recordsExist = async (genCode) => {
+//     const records = await findAll(genCode)
+//     if(records?.length > 0){
+//         return true
+//     }else{
+//         return false
+//     }
+// }
 
 const findAll = async(genCode) => {
     const records = await prisma.requestItems.findMany({
@@ -273,6 +283,25 @@ const findAllSaved = async(gencode) => {
         ],
         where:{
             GenCode: gencode
+        }
+    })
+    if(records.length > 0){
+        return records
+    }else{
+        return
+    }
+}
+
+const findAllReceiptSaved = async(gencode) => {
+    const records = await prisma.rquestOrderhistory.findMany({
+        orderBy: [
+            {
+              createdAt: 'desc',
+            }
+        ],
+        where:{
+            GenCode: gencode,
+            Status: "delivered"
         }
     })
     if(records.length > 0){
@@ -462,12 +491,14 @@ const findOrderReceiptList = async() => {
     })
 }
 
-const deleteAll = async (genCode) => {
-    await prisma.requestItems.deleteMany({
-        where:{
-            GenCode : genCode
-        }
-    })
+const deleteAll = async () => {
+    await prisma.requestItems.deleteMany(
+        // {
+        // where:{
+        //     GenCode : genCode
+        // }
+        // }
+    )
 }
 
 const createReq = async (rec,genCode,arr,index,page) => {
@@ -707,13 +738,18 @@ const updateRecordStatus = async (recordID) => {
     })
 }
 
-const updateinHestoricalOrder = async (id,order) => {
-    updateTransferToHes(id,order)
-    .catch((e) => {
-        console.log(e)
-    })
-    .finally(async () => {
-        await prisma.$disconnect()
+const updateinHestoricalOrder = async (id,order,arr) => {
+    return new Promise((resolve,reject) => {
+        updateTransferToHes(id,order)
+        .catch((e) => {
+            console.log(e)
+            reject()
+        })
+        .finally(async () => {
+            arr.push('added')
+            await prisma.$disconnect()
+            resolve()
+        })
     })
 }
 
@@ -798,7 +834,8 @@ const upsertRecord = async (rec) => {
           id: await getID(rec.GenCode,rec.ItemCode)
         },
         update: {
-          Order:parseFloat(rec.Order)
+          Order:parseFloat(rec.Order),
+          Status: "delivered"
         },
         create: {
             ItemCode:rec.ItemCode,
@@ -816,7 +853,7 @@ const upsertRecord = async (rec) => {
             ConvFactor:1.0000,
             Warehousefrom:rec.Warehousefrom,
             Order:rec.Order,
-            Status: "approved",
+            Status: "delivered",
             GenCode: rec.GenCode
         },
       })
@@ -886,10 +923,10 @@ const updatePOstatus = async (id,arr) => {
     })
 }
 
-const getDataLocal = async (whs) =>{
+const getDataLocal = async (whs,employeeNO) =>{
     return new Promise((resolve,reject) => {
         try{
-            const genCode = file.getGenCode(whs,'./postNumber.txt')
+            const genCode = file.getGenCode(whs,'./postNumber.txt',employeeNO)
             const results = findAll(genCode)
                             .catch((e) => {
                                 console.log(e)
@@ -1037,8 +1074,8 @@ const findInReturn = async () => {
 const transferToHes = async (records,whs) => {
     createAll(records,null,'historical').then(() => {
         const start = async () => {
-            const genCode = await file.previousGetGenCode(whs,'./postNumber.txt')
-            deleteAll(genCode)
+            // const genCode = await file.previousGetGenCode(whs,'./postNumber.txt')
+            deleteAll()
             .catch((e) => {
                 console.log(e)
             })
@@ -1236,14 +1273,14 @@ const getAllDelivery = async () => {
     return await prisma.requestReceiptItems.findMany()
 }
 
-const transferToReceHis = async (records) => {
+const transferToReceHis = async (records,genCode) => {
     new Promise((resolve,reject) => {
         let length = records.length
         const arr = []
         records.forEach((rec) => {
             if(rec.Status != 'received'){
                 new Promise((resolve,reject) => {
-                    createPOhisRecord(rec)
+                    createPOhisRecord(rec,genCode)
                     .catch((e) => {
                         console.log(e)
                         resolve()
@@ -1287,7 +1324,7 @@ const transferToReceHis = async (records) => {
     })
 }
 
-const createPOhisRecord = async (record) => {
+const createPOhisRecord = async (record,genCode) => {
     try{
         await prisma.receipthistory.create({
             data : {
@@ -1302,10 +1339,29 @@ const createPOhisRecord = async (record) => {
               UgpName: record.UgpName,
               Order: record.Order,
               OpenQty: record.OpenQty,
+              GenCode:genCode
             }
         })
       }catch(err){
       }
+}
+
+const rejectRequests = async (genCode) => {
+    await prisma.rquestOrderhistory.updateMany({
+        where: {
+          GenCode:genCode,
+          Status:"approved"
+        },
+        data: {
+            Status:"rejected",
+        },
+    })
+    .catch((e) => {
+        console.log(e)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
 }
 
 module.exports = {
@@ -1351,5 +1407,7 @@ module.exports = {
     addToDeliverHis,
     getGenCodeTransfer,
     getAllTransferGencodes,
-    upsertAllRec
+    upsertAllRec,
+    findAllReceiptSaved,
+    rejectRequests
 }
