@@ -626,7 +626,7 @@ const checkStuts = async(username) => {
         const start = async () => {
             try{
                 const pool = await sql.getSQL()
-                pool.request().query(`select * from ${USERS_WHS_TABLE} where Username = '${username}'`)
+                await pool.request().query(`select * from ${USERS_WHS_TABLE} where Username = '${username}'`)
                 .then(result => {
                     const allowed = result.recordset[0].Allowed
                     if(allowed == '0'){
@@ -672,6 +672,18 @@ const upsertRequestOrders = async(results) => {
     })
 }
 
+const closeAllowReq = async(username) => {
+    try{
+        const pool = await sql.getSQL()
+        await pool.request().query(`update ${USERS_WHS_TABLE} set Allowed = '0' where Username = '${username}'`)
+        .then(result => {
+            pool.close();
+        })
+    }catch(err){
+        console.log(err)
+    }
+}
+
 module.exports = {
     toggleRequestButton,
     getUser,
@@ -690,5 +702,6 @@ module.exports = {
     submitDeliverToSQL,
     checkStuts,
     getOpenRequest,
-    upsertRequestOrders
+    upsertRequestOrders,
+    closeAllowReq
 }

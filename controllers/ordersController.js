@@ -331,6 +331,10 @@ const submit = async (req,res) =>{
             functions.sendRequestOrder(records,req.session.username,page,note)
             .then(() => {
                 res.send('done')
+                if(req.session.allowed == '1'){
+                    req.session.allowed = "0"
+                    functions.closeAllowReq(req.session.username)
+                }
                 const start = async() => {
                     const no = await file.getPostNo('./postNumber.txt')
                     file.updateGenCode(no,'./postNumber.txt')
@@ -667,6 +671,11 @@ const checkAllowStatus = async (req,res) => {
     try{
         functions.checkStuts(req.session.username)
         .then((msg) => {
+            if(msg == 'notAllowed'){
+                req.session.allowed = '0'
+            }else{
+                req.session.allowed = '1'
+            }
             res.send(msg)
         })
         .catch(() => {
