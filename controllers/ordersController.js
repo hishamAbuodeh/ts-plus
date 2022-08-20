@@ -647,7 +647,8 @@ const sync = async (req,res) => {
 const sendRequestEmail = async (req,res) => {
     try{
         const whsCode = req.session.whsCode
-        const text = `الرجاء السماح لفرع رقم ${whsCode} بعمل طلبية في غير وقتها المحدد`
+        const username = req.session.username
+        const text = `الرجاء السماح لفرع رقم ${whsCode} , المستخدم ${username} بعمل طلبية في غير وقتها المحدد`
         const subject = `طلب عمل طلبية في غير الوقت المحدد`
         const toEmail = req.session.supplierEmail
         sendEmail(text,subject,toEmail)
@@ -664,7 +665,7 @@ const sendRequestEmail = async (req,res) => {
 
 const checkAllowStatus = async (req,res) => {
     try{
-        functions.checkStuts(req.session.whsCode)
+        functions.checkStuts(req.session.username)
         .then((msg) => {
             res.send(msg)
         })

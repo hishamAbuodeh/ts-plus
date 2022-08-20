@@ -621,12 +621,12 @@ const sendDeliverRec = async(rec,arr,pool,length) => {
 
 }
 
-const checkStuts = async(whsCode) => {
+const checkStuts = async(username) => {
     return new Promise((resolve,reject) => {
         const start = async () => {
             try{
                 const pool = await sql.getSQL()
-                pool.request().query(`select * from ${USERS_WHS_TABLE} where WhsCode = '${whsCode}'`)
+                pool.request().query(`select * from ${USERS_WHS_TABLE} where Username = '${username}'`)
                 .then(result => {
                     const allowed = result.recordset[0].Allowed
                     if(allowed == '0'){
