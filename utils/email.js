@@ -1,10 +1,11 @@
 // import module
+require('dotenv').config();
 const nodemailer = require('nodemailer')
 
 // declared variables
-const host = "mail.abuodehbros.com" // email provider 
-const fromEmail = "alerts@abuodehbros.com" // email sender user
-const fromEmailPass = "Aa@123456" // email sender password
+const host = process.env.EMAIL_HOST // email provider 
+const fromEmail = process.env.EMAIL_FROM // email sender user
+const fromEmailPass = process.env.EMAIL_PASS // email sender password
 
 const sendEmail = async (text,subject,toEmail) => {
     const transporter = nodemailer.createTransport({
