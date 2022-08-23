@@ -4,10 +4,11 @@ var Service = require('node-windows').Service;
 var svc = new Service({
   name:'Demand App',
   description: 'Demand app for request orders',
-  script: 'C:\\demand-app\\server.js',
+  script: 'C:\\demand-app\\bin\\www',
+  // execPath: 'C:\\Program Files\\nodejs',
   nodeOptions: [
     '--harmony',
-    '--max_old_space_size=4096'
+    '--max_old_space_size=8096'
   ]
   //, workingDirectory: '...'
   //, allowServiceLogon: true
@@ -20,3 +21,11 @@ svc.on('install',function(){
 });
 
 svc.install();
+
+// svc.on('uninstall',function(){
+//   console.log('Uninstall complete.');
+//   console.log('The service exists: ',svc.exists);
+// });
+
+// // Uninstall the service.
+// svc.uninstall();
