@@ -645,6 +645,68 @@ const sendDeliverRec = async(rec,arr,pool,length) => {
 
 }
 
+const submitCountToSQL = async(records) => {
+    return new Promise((resolve,reject) => {
+        const start = async() => {
+            const pool = await sql.getSQL()
+            if(pool){
+                const length = records.length
+                const arr = []
+                records.forEach(rec => {
+                    if(rec.Status == 'pending'){
+                        sendCountRec(rec,arr,pool,length)
+                        .then(() => {
+                            if(arr.length == length){
+                                pool.close();
+                                console.log('resolved')
+                                resolve();
+                            }
+                        })
+                        .catch(() => {
+                            reject()
+                        })
+                    }else{
+                        arr.push('added')
+                        if(arr.length == length){
+                            resolve()
+                        }
+                    }
+                })
+            }else{
+                reject()
+            }
+        }
+        start()
+    })
+}
+
+const sendCountRec = async(rec,arr,pool,length) => {
+    return new Promise((resolve,reject) => {
+        let queryStatment = `update ${COUNTING_REQUEST_TABLE} set Qnty = ${rec.Qnty} , SAP_Processed = 0 where ID = ${rec.id}`;
+        try{
+            pool.request().query(queryStatment)
+            .then(result => {
+                if(result.rowsAffected.length > 0){
+                    console.log('table record updated')
+                    prisma.deleteCountStatus(rec.id,arr)
+                    .then(() => {
+                        resolve()
+                    })
+                    .catch(() => {
+                        reject()
+                    })
+                }else{
+                    console.log(result.rowsAffected)
+                    reject()
+                }
+            })
+        }catch(err){
+            reject()
+        }
+    })
+
+}
+
 const checkStuts = async(username) => {
     return new Promise((resolve,reject) => {
         const start = async () => {
@@ -749,6 +811,32 @@ const syncCountRequest = async(whs,username,date) => {
     })
 }
 
+const updateCountNo = async(username,counts) => {
+    return new Promise((resolve,reject) => {
+        try{
+            const start = async() => {
+                const pool = await sql.getSQL()
+                if(pool){
+                    await pool.request().query(`update ${USERS_WHS_TABLE} set CountingAvailable = '${rec.counts}' where Username = '${username}'`)
+                    .then(result => {
+                        pool.close();
+                        if(result.rowsAffected.length > 0){
+                            resolve()
+                        }else{
+                            reject()
+                        }
+                    })
+                }else{
+                    reject()
+                }
+            }
+            start()
+        }catch(err){
+            reject()
+        }
+    })
+}
+
 const saveCountRequest = async(result) => {
     const mappedData = result.map((rec) => {
         return {
@@ -804,5 +892,7 @@ module.exports = {
     getOpenRequest,
     upsertRequestOrders,
     closeAllowReq,
-    getCountingAvailable
+    getCountingAvailable,
+    submitCountToSQL,
+    updateCountNo
 }

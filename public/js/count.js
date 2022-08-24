@@ -278,7 +278,7 @@ const setOrderValueZero = async (id) => {
   const tryToSubmit = () => {
     $("body").attr("style", "height:100%");
     showModal("submit");
-    $.post(`/Count/Submit`).then((msg) => {
+    $.post(`/Count/Submit/${countName}`).then((msg) => {
       if (msg == "done") {
         setTimeout(() => {
           hideModal("submit");

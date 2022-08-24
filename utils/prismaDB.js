@@ -817,6 +817,14 @@ const updateReqRecRecordStatus = async (recordID) => {
     })
 }
 
+const deleteCountRecordStatus = async (recordID) => {
+    await prisma.countRequest.deleteMany({
+        where:{
+            id : parseInt(recordID)
+        },
+    })
+}
+
 const updateRetRecordStatus = async (recordID) => {
     await prisma.returnItems.update({
         where:{
@@ -922,6 +930,21 @@ const getID = async(genCode,itemCode) => {
 const updateReqRecStatus = async (id,arr) => {
     return new Promise((resolve,reject) => {
         updateReqRecRecordStatus(id)
+        .catch((e) => {
+            console.log(e)
+            reject()
+        })
+        .finally(async () => {
+            await prisma.$disconnect()
+            arr.push('added')
+            resolve()
+        })
+    })
+}
+
+const deleteCountStatus = async (id,arr) => {
+    return new Promise((resolve,reject) => {
+        deleteCountRecordStatus(id)
         .catch((e) => {
             console.log(e)
             reject()
@@ -1405,15 +1428,16 @@ const rejectRequests = async (genCode) => {
     })
 }
 
-const deleteAllCountReq = async() => {
-    await prisma.countRequest.deleteMany()
-        .catch((e) => {
-            console.log(e)
-        })
-        .finally(async () => {
-            await prisma.$disconnect()
-        })
-}
+// const deleteAllCountReq = async() => {
+//     await prisma.countRequest.deleteMany()
+//         .catch((e) => {
+//             console.log(e)
+//         })
+//         .finally(async () => {
+//             await prisma.$disconnect()
+//         })
+// }
+
 const createAllcountReq = async(results) => {
     // await deleteAllCountReq()
     return await prisma.countRequest.createMany({
@@ -1427,6 +1451,19 @@ const createAllcountReq = async(results) => {
     .finally(async () => {
         await prisma.$disconnect()
         return 'done'
+    })
+}
+
+const createAllcountHis = async(results) => {
+    return await prisma.countHistory.createMany({
+        data:results,
+        skipDuplicates:true
+    })
+    .catch((e) => {
+        console.log(e)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
     })
 }
 
@@ -1526,5 +1563,7 @@ module.exports = {
     getCountRequest,
     updateCounts,
     findCountsList,
-    getCountRequestHis
+    getCountRequestHis,
+    deleteCountStatus,
+    createAllcountHis
 }

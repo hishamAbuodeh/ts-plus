@@ -74,20 +74,39 @@ const allReport = async (req,res) => {
 }
 
 const submit = async (req,res) =>{
+    const { value } = req.params
     try{
-        // let records = await prisma.findAllPOs()
-        // const no = await file.getPostNo('./POreceiving.txt')
-        // const genCode = await file.getGenCode(req.session.whsCode,'./POreceiving.txt',req.session.employeeNO)
-        // functions.sendPOtoSQL(records,req.session.username,genCode)
-        // .then(() => {
-        //     res.send('done')
-        //     prisma.transferToReceHis(records,genCode)
-        //     file.updateGenCode(no,'./POreceiving.txt')
-        // })
-        // .catch(err => {
-        //     res.send('error')
-        // })
-        res.send('error')
+        let records = await prisma.getCountRequest(value)
+        functions.submitCountToSQL(records)
+        .then(() => {
+            res.send('done')
+            let counts = parseInt(req.session.countingAvailable)
+            counts = counts - 1
+            req.session.countingAvailable = counts
+            functions.updateCountNo(req.session.username,counts)
+            .then(() => {
+                console.log('counting availble edited')
+            })
+            .catch(() => {
+                console.log('counting did not availble edited')
+            })
+            const mappedRecords = result.map((rec) => {
+                return {
+                    CountingName:rec.CountingName,
+                    CountingDate:rec.CountingDate,
+                    ItemCode:rec.ItemCode,
+                    ItemName:rec.ItemName,
+                    BuyUnitMsr:rec.UnitMsr,
+                    WhsCode:rec.WhsCode,
+                    CodeBars:rec.CodeBars,
+                    Note:rec.Note,
+                }
+            })
+            prisma.createAllcountHis(mappedRecords)
+        })
+        .catch(() => {
+            res.send('error')
+        })
     }catch(err){
         res.send('error')
     }
