@@ -1,17 +1,14 @@
-let pageOption = 'docNum'
-const docNumDiv = `<div id="div" style="min-width:300px;display: flex;justify-content: flex-end;align-items: center;"><label style="margin-right: 5px;">اسم الجرد : </label><select style="width: 53%;"><option>قريبا</option></select></div>`
+let pageOption = 'countName'
+const countNameDiv = `<div id="div" style="display: flex;justify-content: center;align-items: center;"><label style="margin-right: 5px;">اسم الجرد : </label><select style="margin-right: 15px;min-width: 30%;" id="select-0"></select><botton id="send" class="btu"><p class="para">Enter</p></botton></div>`
 const buttons  = `<div class="btuLoctaion"><botton id="report" class="btu"><p class="para">Report</p></botton><botton id="submitOrder" class="btu" style="margin-left: 30px;"><p class="para">Submit</p></botton><botton id='close1' class="btu" style="margin-left: 30px;"><p class="para">close</p></botton><botton id='exit' class="btu" style="margin-left: 30px;"><p class="para">Exit</p></botton></div>`
-let poNumber;
-let begin = new Date()
-begin = begin.toISOString().split('T')[0]
-begin = new Date(begin).toISOString();
+let countName;
 $(document).ready(() => {
-    showDocNum() 
+    showCountName() 
     $('.netError_accept2').on('click',()=>{
         hideModal("net-error2")
-        const docNumValue = $('.input-po').val()
-        if(docNumValue != ""){
-            showTable(docNumValue)
+        const countNameValue = $('#select-0').val()
+        if(countNameValue != ""){
+            showTable(countNameValue)
         }else{
           alert('الرجاء ادخال رقم الطلبية')
         }
@@ -34,22 +31,40 @@ $(document).ready(() => {
     });  
 })
 
-const showDocNum = () => {
-    document.getElementById('receiptDucNo').innerHTML = docNumDiv
-    $('#poNumBtu').on('click',() => {
-        pageOption = 'receiptTable'
-        const docNumValue = $('.input-po').val()
-        if(docNumValue != ""){
-            showTable(docNumValue)
-        }else{
-          alert('الرجاء ادخال رقم الطلبية')
-        }
-    })
+const showCountName = () => {
+  $.get('/Count/Names').then((data) => {
+    if(data != 'error'){
+      pageOption = 'countName'
+      document.getElementById('receiptDucNo').innerHTML = countNameDiv
+      const opts = getOptions(data)
+      $('#select-0').html(opts)
+      $('#send').on('click',() => {
+          const countNameValue = $('#select-0').val()
+          if(countNameValue != ""){
+              showTable(countNameValue)
+          }else{
+            alert('الرجاء اختر اسم الجرد')
+          }
+      })
+    }else{
+      document.getElementById('receiptDucNo').innerHTML = countNameDiv
+      $('#select-0').html(`<option></option`)
+      alert("خطأ داخلي الرجاء المحاولة مرة اخرى");
+    }
+  })   
 }
 
-const showTable = async (number) => {
+const getOptions = (data) => {
+  let opts = ""
+  data.forEach((rec) => {
+    opts += `<option>${rec.CountingName}</option>`
+  })
+  return opts
+}
+
+const showTable = async (value) => {
     showModal('request') 
-    $.post(`/Receipt/Sync/${number}`).then(msg => {
+    $.post(`/Count/Sync/${value}`).then(msg => {
         if(msg == 'error'){
             setTimeout(() => {
                 changeModalCont('net-error2','request');
@@ -57,7 +72,7 @@ const showTable = async (number) => {
         }else{
             setTimeout(() => {
                 if(msg != 'not found'){
-                    poNumber = number
+                    countName = value
                     createTable(msg)
                     hideModal('request');
                 }else{
@@ -81,10 +96,11 @@ const closeTable = () => {
     }
     tableDiv.empty();
     btuDiv.empty();
-    showDocNum() 
+    showCountName() 
 }
 
 const createTable = (table) => {
+    pageOption = 'countTable'
     const poDiv = $('#receiptDucNo');
     const tableDiv = $('#receiptTable');
     const btuDiv = $('.otterDiv');
@@ -183,36 +199,27 @@ const save = (id, input, previousVal) => {
       alert("يرجى ادخال قيمة صحيحة");
     } else {
       value = trim(value);
-      const checked = check(value, id);
-      if (checked) {
-        if (value != 0) {
-            $.post(`/Receipt/Save/${id}/${value}`).then((msg) => {
-                if (msg == "error") {
-                  alert(
-                    "IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم"
-                  );
-                  input.val("");
-                } else {
-                  tr.addClass("active-input");
-                  tr.removeClass("hide");
-                  tr.css("background-color", "green");
-                }
-            });
-        } else {
-          if (previousVal) {
-            setOrderValueZero(id);
-          }
-          input.val("");
-        }
-      } else {
-        if (previousVal) {
-          setOrderValueZero(id);
-        }
-        alert("(0 - Qty Receipt) الكمية يجب ان تكون بين");
-        input.val("");
+      if (value != 0) {
+        $.post(`/Count/Save/${id}/${value}`).then((msg) => {
+            if (msg == "error") {
+              alert(
+                "IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم"
+              );
+              input.val("");
+            } else {
+              tr.addClass("active-input");
+              tr.removeClass("hide");
+              tr.css("background-color", "green");
+            }
+        });
+    } else {
+      if (previousVal) {
+        setOrderValueZero(id);
       }
+      input.val("");
     }
-    return;
+  }
+  return;
 };
 
 const trim = (value) => {
@@ -225,18 +232,8 @@ const trim = (value) => {
     return parseFloat(newStr);
   };
 
-  const check = (value, id) => {
-    const QtyRec = $(`#QtyRec-${id}`);
-    const maxValue = QtyRec[0].innerHTML;
-    if (value <= maxValue) {
-      return true;
-    } else {
-      return false;
-    }
-  };
-
 const setOrderValueZero = async (id) => {
-    $.post(`/Receipt/Save/${id}/0`).then((msg) => {
+    $.post(`/Count/Save/${id}/0`).then((msg) => {
       if (msg == "error") {
         alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
       }
@@ -263,7 +260,7 @@ const setOrderValueZero = async (id) => {
 
   const showReport = () => {
     setTimeout(() => {
-      $.get(`/Receipt/Report`).then((results) => {
+      $.get(`/Count/Report`).then((results) => {
         if (results == "error") {
           alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
         } else {
@@ -279,10 +276,9 @@ const setOrderValueZero = async (id) => {
   };
 
   const tryToSubmit = () => {
-    console.log("submit")
     $("body").attr("style", "height:100%");
     showModal("submit");
-    $.post(`/Receipt/Submit`).then((msg) => {
+    $.post(`/Count/Submit`).then((msg) => {
       if (msg == "done") {
         setTimeout(() => {
           hideModal("submit");
@@ -311,8 +307,7 @@ const setOrderValueZero = async (id) => {
   };
 
   const showAllReports = () => {
-    let end= new Date().toISOString();
-    $.get(`/Receipt/AllReports/${poNumber}/${begin}/${end}`).then((results) => {
+    $.get(`/Count/AllReports/${countName}`).then((results) => {
       if (results == "error") {
         alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
       } else {

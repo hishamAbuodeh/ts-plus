@@ -428,6 +428,22 @@ const findPOreceivedList = async() => {
     })
 }
 
+const findCountsList = async() => {
+    return await prisma.countRequest.findMany({
+        where:{
+            Qnty : {
+                not : 0.000000
+            }
+        }
+    }).catch((e) => {
+        console.log(e)
+        return
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
 const findAllPOs = async() => {
     return await prisma.receiptItems.findMany()
     .catch((e) => {
@@ -643,6 +659,20 @@ const updatePOs = async (id,value) => {
     })
 }
 
+const updateCounts = async (id,value) => {
+    return new Promise((resolve,reject) => {
+        updateCountrecord(id,value)
+        .catch((e) => {
+            console.log(e)
+            reject()
+        })
+        .finally(async () => {
+            await prisma.$disconnect()
+            resolve()
+        })
+    })
+}
+
 const saveInHostrical = async (rec) => {
     await prisma.rquestOrderhistory.create({
         data : {
@@ -715,6 +745,17 @@ const updatePOrecord = async (recordID,value) => {
         },
         data : {
             Order: value != null? parseFloat(value) : 0,
+        }
+    })
+}
+
+const updateCountrecord = async (recordID,value) => {
+    await prisma.countRequest.update({
+        where:{
+            id : parseInt(recordID)
+        },
+        data : {
+            Qnty: value != null? parseFloat(value) : 0,
         }
     })
 }
@@ -1364,6 +1405,76 @@ const rejectRequests = async (genCode) => {
     })
 }
 
+const deleteAllCountReq = async() => {
+    await prisma.countRequest.deleteMany()
+        .catch((e) => {
+            console.log(e)
+        })
+        .finally(async () => {
+            await prisma.$disconnect()
+        })
+}
+const createAllcountReq = async(results) => {
+    // await deleteAllCountReq()
+    return await prisma.countRequest.createMany({
+        data:results,
+        skipDuplicates:true
+    })
+    .catch((e) => {
+        console.log(e)
+        return 'error'
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+        return 'done'
+    })
+}
+
+const getCountNames = async() => {
+    return await prisma.countRequest.groupBy({
+        by: ['CountingName'],
+        orderBy:[
+            {
+              CountingName: 'desc',
+            }
+        ],
+    })
+    .catch((e) => {
+        console.log(e)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
+const getCountRequest = async(name) => {
+    return await prisma.countRequest.findMany({
+        where:{
+            CountingName:name
+        }
+    })
+    .catch((e) => {
+        console.log(e)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
+const getCountRequestHis = async(name) => {
+    return await prisma.countHistory.findMany({
+        where:{
+            CountingName:name
+        }
+    })
+    .catch((e) => {
+        console.log(e)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
 module.exports = {
     createRecords,
     getDataLocal,
@@ -1409,5 +1520,11 @@ module.exports = {
     getAllTransferGencodes,
     upsertAllRec,
     findAllReceiptSaved,
-    rejectRequests
+    rejectRequests,
+    createAllcountReq,
+    getCountNames,
+    getCountRequest,
+    updateCounts,
+    findCountsList,
+    getCountRequestHis
 }

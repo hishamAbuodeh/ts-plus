@@ -603,7 +603,11 @@ const sync = async (req,res) => {
         new Promise((resolve,reject) => {
             const warehousefrom = req.session.whsCode
             const results = functions.getTransferReq(genCode,warehousefrom)
-            resolve(results)
+            if(results){
+                resolve(results)
+            }else{
+                reject()
+            }
         }).then((results) => {
             if(results.length > 0){
                 const start = async () => {

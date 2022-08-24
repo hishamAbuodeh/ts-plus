@@ -9,6 +9,7 @@ const USERS_TABLE = process.env.USERS_TABLE
 const USERS_WHS_TABLE = process.env.USERS_WHS_TABLE
 const REQUSET_TRANSFER_TABLE = process.env.REQUSET_TRANSFER_TABLE
 const RECEIVING_PO_TABLE= process.env.RECEIVING_PO_TABLE
+const COUNTING_REQUEST_TABLE= process.env.COUNTING_REQUEST_TABLE
 const SQL_REQUEST_TRANSFER_PROCEDURE = process.env.SQL_REQUEST_TRANSFER_PROCEDURE
 const SQL_RECEIVING_RETURNPO_PROCEDURE = process.env.SQL_RECEIVING_RETURNPO_PROCEDURE
 const SQL_RECEIVINGPO_PROCEDURE = process.env.SQL_RECEIVINGPO_PROCEDURE
@@ -26,12 +27,16 @@ const toggleRequestButton = (requestDay,requestHour) => {
 const getUser = async (username,password) => {
     try{
         const pool = await sql.getSQL();
-        const user = await pool.request().query(`select * from ${USERS_TABLE} where Username = '${username}' and Password = '${password}'`)
-        .then(result => {
-            pool.close();
-            return result.recordset;
-        })
-        return user
+        if(pool){
+            const user = await pool.request().query(`select * from ${USERS_TABLE} where Username = '${username}' and Password = '${password}'`)
+            .then(result => {
+                pool.close();
+                return result.recordset;
+            })
+            return user
+        }else{
+            return
+        }
     }catch(err){
         return
     }
@@ -40,12 +45,16 @@ const getUser = async (username,password) => {
 const getWhs = async (username) => {
     try{
         const pool = await sql.getSQL();
-        const whsCode = await pool.request().query(`select * from ${USERS_WHS_TABLE} where Username = '${username}'`)
-        .then(result => {
-            pool.close();
-            return result.recordset;
-        })
-        return whsCode
+        if(pool){
+            const whsCode = await pool.request().query(`select * from ${USERS_WHS_TABLE} where Username = '${username}'`)
+            .then(result => {
+                pool.close();
+                return result.recordset;
+            })
+            return whsCode
+        }else{
+            return
+        }
     }catch(err){
         return
     }
@@ -54,12 +63,16 @@ const getWhs = async (username) => {
 const getTransferReq = async (genCode,warehousefrom) => {
     try{
         const pool = await sql.getSQL();
-        const user = await pool.request().query(`select * from ${REQUSET_TRANSFER_TABLE} where GenCode = '${genCode}' and SAP_Procces = 2 and warehousefrom = '${warehousefrom}'`)
-        .then(result => {
-            pool.close();
-            return result.recordset;
-        })
-        return user
+        if(pool){
+            const user = await pool.request().query(`select * from ${REQUSET_TRANSFER_TABLE} where GenCode = '${genCode}' and SAP_Procces = 2 and warehousefrom = '${warehousefrom}'`)
+            .then(result => {
+                pool.close();
+                return result.recordset;
+            })
+            return user
+        }else{
+            return
+        }
     }catch(err){
         return
     }
@@ -87,8 +100,6 @@ const getAndSaveData = async (whs,page,value,employeeNO) => {
                 msg = hana.getItems(whs).then(results => {
                     return prisma.createReturnRecords(results)
                 })
-            }else if(page == "goCount"){
-                msg = 'done'
             }
             resolve(msg)
         }).then((msg) => {
@@ -106,20 +117,12 @@ const sendRequestOrder = async (records,userName,page,note) => {
         const start = async () => {
             try{
                 const pool = await sql.getSQL()
-                const length = records.length
-                const arr = []
-                records.forEach(rec => {
-                    if(rec.Status == 'pending'){
-                        if(page != "receipt"){
-                            startTransaction(pool,rec,userName,arr,length,page,note)
-                            .then(() => {
-                                resolve()
-                            })
-                            .catch((err) => {
-                                reject()
-                            })
-                        }else{
-                            if(parseInt(rec.Difference) != 0){
+                if(pool){
+                    const length = records.length
+                    const arr = []
+                    records.forEach(rec => {
+                        if(rec.Status == 'pending'){
+                            if(page != "receipt"){
                                 startTransaction(pool,rec,userName,arr,length,page,note)
                                 .then(() => {
                                     resolve()
@@ -128,25 +131,36 @@ const sendRequestOrder = async (records,userName,page,note) => {
                                     reject()
                                 })
                             }else{
-                                prisma.updateReqRecStatus(rec.id,arr)
-                                .then(() => {
-                                    if(arr.length == length){
-                                        resolve();
-                                    }
-                                })
-                                .catch(err => {
-                                    reject()
-                                })
+                                if(parseInt(rec.Difference) != 0){
+                                    startTransaction(pool,rec,userName,arr,length,page,note)
+                                    .then(() => {
+                                        resolve()
+                                    })
+                                    .catch((err) => {
+                                        reject()
+                                    })
+                                }else{
+                                    prisma.updateReqRecStatus(rec.id,arr)
+                                    .then(() => {
+                                        if(arr.length == length){
+                                            resolve();
+                                        }
+                                    })
+                                    .catch(err => {
+                                        reject()
+                                    })
+                                }
+                            }
+                        }else{
+                            arr.push('added')
+                            if(arr.length == length){
+                                resolve();
                             }
                         }
-                    }else{
-                        arr.push('added')
-                        if(arr.length == length){
-                            resolve();
-                        }
-                    }
-                })
-                
+                    })
+                }else{
+                    reject()
+                }
             }catch(err){
                 reject()
             }
@@ -160,25 +174,28 @@ const sendReturnItems = async (records,userName,note,genCode) => {
         const start = async () => {
             try{
                 const pool = await sql.getSQL()
-                const length = records.length
-                const arr = []
-                records.forEach(rec => {
-                    if(rec.Status == 'pending'){
-                        startReturnTransaction(pool,rec,userName,arr,length,note,genCode)
-                        .then(() => {
-                            resolve()
-                        })
-                        .catch((err) => {
-                            reject()
-                        })
-                    }else{
-                        arr.push('added')
-                        if(arr.length == length){
-                            resolve();
+                if(pool){
+                    const length = records.length
+                    const arr = []
+                    records.forEach(rec => {
+                        if(rec.Status == 'pending'){
+                            startReturnTransaction(pool,rec,userName,arr,length,note,genCode)
+                            .then(() => {
+                                resolve()
+                            })
+                            .catch((err) => {
+                                reject()
+                            })
+                        }else{
+                            arr.push('added')
+                            if(arr.length == length){
+                                resolve();
+                            }
                         }
-                    }
-                })
-                
+                    })
+                }else{
+                    reject()
+                }
             }catch(err){
                 reject()
             }
@@ -409,25 +426,28 @@ const sendPOtoSQL = async (records,userName,gencode) => {
         const start = async () => {
             try{
                 const pool = await sql.getSQL()
-                const length = records.length
-                const arr = []
-                records.forEach(rec => {
-                    if((rec.Status == 'pending') && (rec.Order > 0)){
-                        startPOtransaction(pool,rec,userName,arr,length,gencode)
-                        .then(() => {
-                            resolve()
-                        })
-                        .catch((err) => {
-                            reject()
-                        })
-                    }else{
-                        arr.push('added')
-                        if(arr.length == length){
-                            resolve();
+                if(pool){
+                    const length = records.length
+                    const arr = []
+                    records.forEach(rec => {
+                        if((rec.Status == 'pending') && (rec.Order > 0)){
+                            startPOtransaction(pool,rec,userName,arr,length,gencode)
+                            .then(() => {
+                                resolve()
+                            })
+                            .catch((err) => {
+                                reject()
+                            })
+                        }else{
+                            arr.push('added')
+                            if(arr.length == length){
+                                resolve();
+                            }
                         }
-                    }
-                })
-                
+                    })
+                }else{
+                    reject()
+                }
             }catch(err){
                 reject()
             }
@@ -561,26 +581,30 @@ const submitDeliverToSQL = async(records) => {
     return new Promise((resolve,reject) => {
         const start = async() => {
             const pool = await sql.getSQL()
-            const length = records.length
-            const arr = []
-            records.forEach(rec => {
-                if(rec.Status == 'pending'){
-                    sendDeliverRec(rec,arr,pool,length)
-                    .then(() => {
+            if(pool){
+                const length = records.length
+                const arr = []
+                records.forEach(rec => {
+                    if(rec.Status == 'pending'){
+                        sendDeliverRec(rec,arr,pool,length)
+                        .then(() => {
+                            if(arr.length == length){
+                                resolve()
+                            }
+                        })
+                        .catch(() => {
+                            reject()
+                        })
+                    }else{
+                        arr.push('added')
                         if(arr.length == length){
                             resolve()
                         }
-                    })
-                    .catch(() => {
-                        reject()
-                    })
-                }else{
-                    arr.push('added')
-                    if(arr.length == length){
-                        resolve()
                     }
-                }
-            })
+                })
+            }else{
+                reject()
+            }
         }
         start()
     })
@@ -626,16 +650,20 @@ const checkStuts = async(username) => {
         const start = async () => {
             try{
                 const pool = await sql.getSQL()
-                await pool.request().query(`select * from ${USERS_WHS_TABLE} where Username = '${username}'`)
-                .then(result => {
-                    const allowed = result.recordset[0].Allowed
-                    if(allowed == '0'){
-                        resolve('notAllowed')
-                    }else{
-                        resolve('allowed')
-                    }
-                    pool.close();
-                })
+                if(pool){
+                    await pool.request().query(`select * from ${USERS_WHS_TABLE} where Username = '${username}'`)
+                    .then(result => {
+                        const allowed = result.recordset[0].Allowed
+                        if(allowed == '0'){
+                            resolve('notAllowed')
+                        }else{
+                            resolve('allowed')
+                        }
+                        pool.close();
+                    })
+                }else{
+                    reject()
+                }
             }catch(err){
                 reject()
             }
@@ -675,12 +703,84 @@ const upsertRequestOrders = async(results) => {
 const closeAllowReq = async(username) => {
     try{
         const pool = await sql.getSQL()
-        await pool.request().query(`update ${USERS_WHS_TABLE} set Allowed = '0' where Username = '${username}'`)
-        .then(result => {
-            pool.close();
-        })
+        if(pool){
+            await pool.request().query(`update ${USERS_WHS_TABLE} set Allowed = '0' where Username = '${username}'`)
+            .then(result => {
+                pool.close();
+            })
+        }
     }catch(err){
         console.log(err)
+    }
+}
+
+const syncCountRequest = async(whs,username,date) => {
+    return new Promise((resolve,reject) => {
+        try{
+            const start = async() => {
+                const pool = await sql.getSQL()
+                if(pool){
+                    await pool.request().query(`select * from ${COUNTING_REQUEST_TABLE} where WhsCode = '${whs}' and Username = '${username}' and SAP_Processed = 2 and CountingDate <= '${date}'`)
+                    .then(result => {
+                        pool.close();
+                        if(result.recordset.length > 0){
+                            const start = async() => {
+                                const msg = await saveCountRequest(result.recordset)
+                                if(msg != 'error'){
+                                    const names = await prisma.getCountNames()
+                                    resolve(names.length)
+                                }else{
+                                    reject()
+                                }
+                            }
+                            start()
+                        }else{
+                            resolve(0)
+                        }
+                    })
+                }else{
+                    reject()
+                }
+            }
+            start()
+        }catch(err){
+            reject()
+        }
+    })
+}
+
+const saveCountRequest = async(result) => {
+    const mappedData = result.map((rec) => {
+        return {
+            id:rec.ID,
+            CountingName:rec.CountingName,
+            CountingDate:rec.CountingDate,
+            ItemCode:rec.ItemCode,
+            ItemName:rec.ItemName,
+            BuyUnitMsr:rec.UnitMsr,
+            WhsCode:rec.WhsCode,
+            CodeBars:rec.CodeBars,
+            Note:rec.Note,
+        }
+    })
+    return prisma.createAllcountReq(mappedData)
+}
+
+const getCountingAvailable = async(counts,message,whs,username) => {
+    if(parseInt(counts) == 0){
+        return counts
+    }else{
+        let date = new Date()
+        date = date.toISOString().split('T')[0]
+        date = new Date(date).toISOString();
+        return await syncCountRequest(whs,username,date)
+                .then((no) => {
+                    return no
+                })
+                .catch(() => {
+                    message.msg = 'error'
+                    return counts
+                })
     }
 }
 
@@ -703,5 +803,6 @@ module.exports = {
     checkStuts,
     getOpenRequest,
     upsertRequestOrders,
-    closeAllowReq
+    closeAllowReq,
+    getCountingAvailable
 }
