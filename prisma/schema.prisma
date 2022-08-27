@@ -164,3 +164,35 @@ model returnhistory{
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
+
+model countRequest{
+    id Int @id @unique
+    CountingName String
+    CountingDate DateTime
+    ItemCode String
+    ItemName String
+    BuyUnitMsr String
+    WhsCode String
+    CodeBars String @default("no bar code")
+    Note String
+    Qnty Decimal @db.Decimal(10,6) @default(0)
+    Status String @default("pending")
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model countHistory{
+    id Int @id @default(autoincrement())
+    CountingName String
+    CountingDate DateTime
+    ItemCode String
+    ItemName String
+    BuyUnitMsr String
+    WhsCode String
+    CodeBars String @default("no bar code")
+    Note String
+    Qnty Decimal @db.Decimal(10,6) @default(0)
+    Status String @default("sent")
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}

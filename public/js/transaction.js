@@ -45,8 +45,8 @@ $(document).ready(function() {
     })
     $('.start_count').on('click',()=>{
         hideModal('count')
-        page = 'goCount'
-        showPage(page)
+        const data = `<div><a style="color: white;" href="/Count" id="goCount">press</a></div>`
+        goToPage('goCount',data)
     })
     $('#return').on('click',()=>{
         page = 'goReturn'
