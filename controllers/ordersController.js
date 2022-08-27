@@ -320,10 +320,12 @@ const submit = async (req,res) =>{
     const {page,note} = req.params
     try{
         let records
+        let managerEmail = null
         if(page == 'request'){
             records = await prisma.findOrderList()
         }else if(page == 'transfer'){
             records = await prisma.findOrderListTransfer()
+            managerEmail = req.session.managerEmail
         }else if(page == 'receipt'){
             records = await prisma.findOrderReceiptList()
         }
@@ -336,6 +338,13 @@ const submit = async (req,res) =>{
                         res.send('done')
                     })
                     functions.closeAllowReq(req.session.username)
+                }else{
+                    res.send('done')
+                }
+                if(page == 'transfer'){
+                    const subject = 'تحويل بين مستودعات'
+                    const text = `هنالك طلب تحويل من مستودع ${records[0].Warehousefrom} الى مستودع ${records[0].WhsCode}`
+                    sendEmail(text,subject,managerEmail)
                 }
                 const start = async() => {
                     const no = await file.getPostNo('./postNumber.txt')
@@ -657,8 +666,8 @@ const sync = async (req,res) => {
 const sendRequestEmail = async (req,res) => {
     try{
         const whsCode = req.session.whsCode
-        const username = req.session.username
-        const text = `الرجاء السماح لفرع رقم ${whsCode} , المستخدم ${username} بعمل طلبية في غير وقتها المحدد`
+        const username = req.session.username   
+        const text = `الرجاء السماح للفرع رقم ${whsCode} و المستخدم ${username} بعمل طلبية في غير وقتها المحدد`
         const subject = `طلب عمل طلبية في غير الوقت المحدد`
         const toEmail = req.session.supplierEmail
         sendEmail(text,subject,toEmail)

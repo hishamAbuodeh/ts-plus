@@ -2,7 +2,7 @@ require('dotenv').config();
 const sql = require('./sql');
 const hana = require('./hana');
 const prisma = require('./prismaDB');
-const file = require('./readAndWriteFiles')
+const file = require('./readAndWriteFiles');
 
 // enviroment variables
 const USERS_TABLE = process.env.USERS_TABLE
@@ -220,7 +220,7 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
                 warehousefrom = rec.Warehousefrom
                 warehouseTo = rec.WhsCode
                 order = rec.Order
-                sapProcess = 2
+                sapProcess = 3
             }else if(page == "request"){
                 warehousefrom = rec.ListName == 'Consumable'? '104' : '102';
                 warehouseTo = rec.WhsCode
