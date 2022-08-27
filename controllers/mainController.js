@@ -27,6 +27,7 @@ const validate = async (req,res) => {
             req.session.supplierEmail = whsCode[0].SupplierEmail
             req.session.supervisorName = whsCode[0].SupervisorName
             req.session.supervisorEmail = whsCode[0].SupervisorEmail
+            req.session.allCounting = whsCode[0].CountingAvailable
             req.session.countingAvailable = await functions.getCountingAvailable(whsCode[0].CountingAvailable,message,whsCode[0].WhsCode,user[0].Username)
             req.session.warehouseName = whsCode[0].WarehouseName
             req.session.allowed = whsCode[0].Allowed

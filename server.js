@@ -11,7 +11,7 @@ const PORT = process.env.PORT;
 const sessionConfig={
     secret: 'secret',
     resave: true,
-    saveUninitialized: true
+    saveUninitialized: true,
 }
 
 // create and configure server

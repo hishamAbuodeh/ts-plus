@@ -79,30 +79,38 @@ const submit = async (req,res) =>{
         let records = await prisma.getCountRequest(value)
         functions.submitCountToSQL(records)
         .then(() => {
-            res.send('done')
-            let counts = parseInt(req.session.countingAvailable)
-            counts = counts - 1
-            req.session.countingAvailable = counts
-            functions.updateCountNo(req.session.username,counts)
-            .then(() => {
-                console.log('counting availble edited')
-            })
-            .catch(() => {
-                console.log('counting did not availble edited')
-            })
-            const mappedRecords = result.map((rec) => {
-                return {
-                    CountingName:rec.CountingName,
-                    CountingDate:rec.CountingDate,
-                    ItemCode:rec.ItemCode,
-                    ItemName:rec.ItemName,
-                    BuyUnitMsr:rec.UnitMsr,
-                    WhsCode:rec.WhsCode,
-                    CodeBars:rec.CodeBars,
-                    Note:rec.Note,
-                }
-            })
-            prisma.createAllcountHis(mappedRecords)
+            // res.send('done')
+            const start = async () => {
+                let counts = parseInt(req.session.allCounting) - 1
+                let avaCounts = parseInt(req.session.countingAvailable) - 1
+                req.session.reload(function(err) {
+                    req.session.allCounting = counts.toString()
+                    req.session.countingAvailable = avaCounts
+                    res.send('done')
+                })
+                await functions.updateCountNo(req.session.username,counts)
+                .then(() => {
+                    console.log('counting availble edited')
+                })
+                .catch(() => {
+                    console.log('counting did not availble edited')
+                })
+                const mappedRecords = records.map((rec) => {
+                    return {
+                        CountingName:rec.CountingName,
+                        CountingDate:rec.CountingDate,
+                        ItemCode:rec.ItemCode,
+                        ItemName:rec.ItemName,
+                        BuyUnitMsr:rec.BuyUnitMsr,
+                        WhsCode:rec.WhsCode,
+                        CodeBars:rec.CodeBars,
+                        Qnty:rec.Qnty,
+                        Note:rec.Note,
+                    }
+                })
+                await prisma.createAllcountHis(mappedRecords)
+            }
+            start()
         })
         .catch(() => {
             res.send('error')

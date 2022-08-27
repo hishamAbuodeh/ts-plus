@@ -330,9 +330,11 @@ const submit = async (req,res) =>{
         if(records.length > 0){
             functions.sendRequestOrder(records,req.session.username,page,note)
             .then(() => {
-                res.send('done')
                 if(req.session.allowed == '1'){
-                    req.session.allowed = "0"
+                    req.session.reload(function(err) {
+                        req.session.allowed = "0"
+                        res.send('done')
+                    })
                     functions.closeAllowReq(req.session.username)
                 }
                 const start = async() => {

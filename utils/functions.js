@@ -657,8 +657,8 @@ const submitCountToSQL = async(records) => {
                         sendCountRec(rec,arr,pool,length)
                         .then(() => {
                             if(arr.length == length){
+                                arr.push('resolved')
                                 pool.close();
-                                console.log('resolved')
                                 resolve();
                             }
                         })
@@ -668,6 +668,7 @@ const submitCountToSQL = async(records) => {
                     }else{
                         arr.push('added')
                         if(arr.length == length){
+                            arr.push('resolved')
                             resolve()
                         }
                     }
@@ -817,7 +818,7 @@ const updateCountNo = async(username,counts) => {
             const start = async() => {
                 const pool = await sql.getSQL()
                 if(pool){
-                    await pool.request().query(`update ${USERS_WHS_TABLE} set CountingAvailable = '${rec.counts}' where Username = '${username}'`)
+                    await pool.request().query(`update ${USERS_WHS_TABLE} set CountingAvailable = '${counts}' where Username = '${username}'`)
                     .then(result => {
                         pool.close();
                         if(result.rowsAffected.length > 0){
