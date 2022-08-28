@@ -43,18 +43,21 @@ const validate = async (req,res) => {
 }
 
 const logOut = (req,res) => {
-    req.session.loggedin = false
-    req.session.username = undefined
-    req.session.whsCode = undefined
-    req.session.open = undefined
-    req.session.supplierName = undefined
-    req.session.supplierEmail = undefined
-    req.session.supervisorName = undefined
-    req.session.supervisorEmail = undefined
-    req.session.countingAvailable = undefined
-    req.session.warehouseName = undefined
-    req.session.allowed = undefined
-    res.render('routing')
+    // req.session.loggedin = false
+    // req.session.username = undefined
+    // req.session.whsCode = undefined
+    // req.session.open = undefined
+    // req.session.supplierName = undefined
+    // req.session.supplierEmail = undefined
+    // req.session.supervisorName = undefined
+    // req.session.supervisorEmail = undefined
+    // req.session.countingAvailable = undefined
+    // req.session.warehouseName = undefined
+    // req.session.allowed = undefined
+    // res.render('routing')
+    req.session.destroy(function(err) {
+        res.render('routing')
+    })
 }
 
 const routing = (req,res) => {
