@@ -343,7 +343,9 @@ const submit = async (req,res) =>{
                 }
                 if(page == 'transfer'){
                     const subject = 'تحويل بين مستودعات'
-                    const text = `هنالك طلب تحويل من مستودع ${records[0].Warehousefrom} الى مستودع ${records[0].WhsCode}`
+                    let text = `هنالك طلب تحويل من مستودع ${records[0].Warehousefrom} الى مستودع ${records[0].WhsCode}`
+                    text += '\n'
+                    text += `رقم التحويل ${records[0].GenCode}`
                     sendEmail(text,subject,managerEmail)
                 }
                 const start = async() => {
