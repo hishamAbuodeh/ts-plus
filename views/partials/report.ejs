@@ -12,6 +12,7 @@
                   <table id="example" style="width:100%" class="table table-striped table-bordered">
                     <thead>
                       <tr>
+                        <th>No.</th>
                         <th style="display:none;">Barcode</th>
                         <th style="display:none;">ConvFactor</th>
                         <th>Item Code</th>
@@ -30,6 +31,7 @@
                     <tbody id="tbody">
                       <% for(let i=0; i < results.length; i++){ const item = results[i] %>
                         <tr class="trEfects">
+                          <td><%= i + 1 %></td>
                           <td style="display:none;"><%= item.CodeBars %></td>
                           <td style="display:none;"><%= item.ConvFactor %></td>
                           <td><%= item.ItemCode %></td>
