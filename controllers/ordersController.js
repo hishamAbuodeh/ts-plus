@@ -76,8 +76,9 @@ const printReport = async(req,res) => {
             match = functions.codeToName(match)
             from = match[`${records[0].Warehousefrom}`]
             to = records[0].WhsName
-            mappedData = records.map(rec => {
+            mappedData = records.map((rec,index) => {
                 return {
+                    no:parseInt(index) + 1,
                     ItemCode:rec.ItemCode,
                     ItemName:rec.ItemName,
                     CodeBars:rec.CodeBars,
@@ -98,8 +99,9 @@ const printReport = async(req,res) => {
             if(records){
                 from = req.session.warehouseName
                 to = records[0].WhsName
-                mappedData = records.map(rec => {
+                mappedData = records.map((rec,index) => {
                     return {
+                        no:parseInt(index) + 1,
                         ItemCode:rec.ItemCode,
                         ItemName:rec.ItemName,
                         CodeBars:rec.CodeBars,

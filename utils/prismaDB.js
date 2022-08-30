@@ -225,7 +225,7 @@ const findAll = async(genCode) => {
     const records = await prisma.requestItems.findMany({
         orderBy: [
             {
-              MaxStock: 'desc',
+                ItemCode: 'asc',
             }
         ],
         where:{
@@ -278,7 +278,7 @@ const findAllSaved = async(gencode) => {
     const records = await prisma.rquestOrderhistory.findMany({
         orderBy: [
             {
-              createdAt: 'desc',
+                ItemCode: 'asc',
             }
         ],
         where:{
@@ -296,7 +296,7 @@ const findAllReceiptSaved = async(gencode) => {
     const records = await prisma.rquestOrderhistory.findMany({
         orderBy: [
             {
-              createdAt: 'desc',
+                ItemCode: 'asc',
             }
         ],
         where:{
@@ -313,6 +313,11 @@ const findAllReceiptSaved = async(gencode) => {
 
 const findAllSent = async(genCode) => {
     const records = await prisma.rquestOrderhistory.findMany({
+        orderBy: [
+            {
+                ItemCode: 'asc',
+            }
+        ],
         where: {
             GenCode : genCode
         }
@@ -326,6 +331,11 @@ const findAllSent = async(genCode) => {
 
 const findAllReceipt = async(genCode) => {
     const records = await prisma.rquestOrderhistory.findMany({
+        orderBy: [
+            {
+                ItemCode: 'asc',
+            }
+        ],
         where: {
             Status:"confirmed",
             GenCode:genCode
@@ -342,7 +352,7 @@ const findAllDelivered = async(genCode) => {
     const records = await prisma.deliveredItemshistory.findMany({
         orderBy:[
             {
-                ItemName:"asc"
+                ItemCode: 'asc',
             }
         ],
         where: {
@@ -358,6 +368,11 @@ const findAllDelivered = async(genCode) => {
 
 const findAllSentReturn = async(genCode) => {
     const records = await prisma.returnhistory.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
         where: {
             genCode : genCode
         }
@@ -371,6 +386,11 @@ const findAllSentReturn = async(genCode) => {
 
 const findOrderList = async() => {
     return await prisma.requestItems.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
         where:{
             Order : {
                 not : 0.000000
@@ -387,6 +407,11 @@ const findOrderList = async() => {
 
 const findReturnList = async() => {
     return await prisma.returnItems.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
         where:{
             Order : {
                 not : 0.000000
@@ -402,7 +427,13 @@ const findReturnList = async() => {
 }
 
 const findAllRequest = async() => {
-    return await prisma.requestItems.findMany()
+    return await prisma.requestItems.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
+    })
     .catch((e) => {
         console.log(e)
         return
@@ -414,6 +445,11 @@ const findAllRequest = async() => {
 
 const findPOreceivedList = async() => {
     return await prisma.receiptItems.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
         where:{
             Order : {
                 not : 0.000000
@@ -430,6 +466,11 @@ const findPOreceivedList = async() => {
 
 const findCountsList = async() => {
     return await prisma.countRequest.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
         where:{
             Qnty : {
                 not : 0.000000
@@ -445,7 +486,13 @@ const findCountsList = async() => {
 }
 
 const findAllPOs = async() => {
-    return await prisma.receiptItems.findMany()
+    return await prisma.receiptItems.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
+    })
     .catch((e) => {
         console.log(e)
         return
@@ -457,9 +504,11 @@ const findAllPOs = async() => {
 
 const findAllHisPOs = async(number,begin,end) => {
     return await prisma.receipthistory.findMany({
-        orderBy: {
-            createdAt: 'desc',
-        },
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
         where : {
             DocNum : parseInt(number),
             createdAt : {
@@ -479,6 +528,11 @@ const findAllHisPOs = async(number,begin,end) => {
 
 const findOrderListTransfer = async() => {
     return await prisma.requestItems.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
         where:{
             Order : {
                 not : 0.000000
@@ -497,7 +551,13 @@ const findOrderListTransfer = async() => {
 }
 
 const findOrderReceiptList = async() => {
-    return await prisma.requestReceiptItems.findMany()
+    return await prisma.requestReceiptItems.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
+    })
     .catch((e) => {
         console.log(e)
         return
@@ -910,6 +970,11 @@ const upsertRecord = async (rec) => {
 
 const getID = async(genCode,itemCode) => {
     let results = await prisma.rquestOrderhistory.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
         where:{
             GenCode:genCode,
             ItemCode:itemCode
@@ -1061,7 +1126,13 @@ const getSavedLocal = async () =>{
 }
 
 const getAllReqReceRec = async() => {
-    return await prisma.requestReceiptItems.findMany()
+    return await prisma.requestReceiptItems.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
+    })
 }
 
 const getAllGencodes = async () => {
@@ -1127,7 +1198,13 @@ const getDataAllInReturn = async () =>{
 }
 
 const findInReturn = async () => {
-    const records = await prisma.returnItems.findMany()
+    const records = await prisma.returnItems.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
+    })
     if(records.length > 0){
         return records
     }else{
@@ -1330,11 +1407,23 @@ const createNewPORecord = async (record,id) => {
 }
 
 const getAllPOs = async () => {
-    return await prisma.receiptItems.findMany()
+    return await prisma.receiptItems.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
+    })
 }
 
 const getAllDelivery = async () => {
-    return await prisma.requestReceiptItems.findMany()
+    return await prisma.requestReceiptItems.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
+    })
 }
 
 const transferToReceHis = async (records,genCode) => {
@@ -1486,6 +1575,11 @@ const getCountNames = async() => {
 
 const getCountRequest = async(name) => {
     return await prisma.countRequest.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
         where:{
             CountingName:name
         }
@@ -1500,6 +1594,11 @@ const getCountRequest = async(name) => {
 
 const getCountRequestHis = async(name) => {
     return await prisma.countHistory.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
         where:{
             CountingName:name
         }
