@@ -67,9 +67,21 @@ const routing = (req,res) => {
     }
 }
 
+const excel = async (req,res) => {
+    const {type} = req.params
+    if(req.session.loggedin)
+    {
+        if(type == 'requestReport'){
+            const msg = await functions.exportReqToExcel()
+            res.send(msg)
+        }
+    }
+}
+
 module.exports = {
     loginPage,
     validate,
     logOut,
-    routing
+    routing,
+    excel
 }

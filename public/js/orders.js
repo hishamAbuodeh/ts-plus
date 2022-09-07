@@ -367,6 +367,13 @@ const showReport = () => {
           $("#close").on("click", (e) => {
             $("#reportDiv").empty();
           });
+          if(page == 'request'){
+            $("#excel").on("click", (e) => {
+              $.post('/Excel/requestReport').then(msg => {
+                console.log(msg)
+              })
+            });
+          }
         });
       }
     });

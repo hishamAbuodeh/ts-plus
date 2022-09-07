@@ -3,6 +3,7 @@ const sql = require('./sql');
 const hana = require('./hana');
 const prisma = require('./prismaDB');
 const file = require('./readAndWriteFiles');
+const exportToexcel = require('./excel')
 
 // enviroment variables
 const USERS_TABLE = process.env.USERS_TABLE
@@ -873,6 +874,35 @@ const getCountingAvailable = async(counts,message,whs,username) => {
     }
 }
 
+const exportReqToExcel = async () => {
+    let records = await prisma.findOrderList()
+    if(records.length > 0){
+        const mappedeRecords = records.map(rec => {
+            return [
+                rec.ItemCode,
+                rec.ItemName,
+                rec.CodeBars,
+                rec.AvgDaily.toString(),
+                rec.OnHand.toString(),
+                rec.MinStock.toString(),
+                rec.MaxStock.toString(),
+                rec.Order.toString(),
+                rec.BuyUnitMsr
+            ]
+        })
+        const sheetName = records[0].GenCode
+        const columnsName = ['Item Code','Item Name','Barcode','Avg. Daily Sale','On Hand','Min','Max','Order','Unit']
+        const status = exportToexcel(mappedeRecords,columnsName,sheetName)
+        if(status){
+            return 'done'
+        }else{
+            return 'error'
+        }
+    }else{
+        return 'noData'
+    }
+}
+
 module.exports = {
     toggleRequestButton,
     getUser,
@@ -895,5 +925,6 @@ module.exports = {
     closeAllowReq,
     getCountingAvailable,
     submitCountToSQL,
-    updateCountNo
+    updateCountNo,
+    exportReqToExcel
 }
