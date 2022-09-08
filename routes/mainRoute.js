@@ -8,5 +8,6 @@ router.get('/Login',controller.loginPage);
 router.get('/Routing',controller.routing);
 router.post('/Validate',controller.validate);
 router.post('/LogOut',controller.logOut);
+router.post('/Excel/:type',controller.excel);
 
 module.exports = router

@@ -58,9 +58,15 @@
   color: #fff;
 }
 
-#closeDiv{
+#closeDiv1{
   display: flex;
   justify-content: flex-end;
+  margin-bottom: -38px;
+}
+
+#closeDiv2{
+  display: flex;
+  justify-content: space-between;
   margin-bottom: -38px;
 }
 

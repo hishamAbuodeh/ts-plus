@@ -1,8 +1,15 @@
 <div id="demo-modal" class="modal-v">
   <div class="report__content">
-    <div id="closeDiv">
+    <% if(page == "report"){ %>
+    <div id="closeDiv2">
+      <botton id="excel" class="btu"  style="margin-left: 30px;"><p class="para">Excel</p></botton>
       <button id='close'>X</button>
     </div>
+    <% }else{ %>
+      <div id="closeDiv1">
+        <button id='close'>X</button>
+      </div>
+    <% } %>
     <div class="container py-5">
         <div class="row py-5">
           <div class="col-lg-10 mx-auto">
@@ -18,6 +25,9 @@
                         <th>Item Code</th>
                         <th>Item Name</th>
                         <th>Branch</th>
+                        <% if(page == "report"){ %>
+                          <th>Avg. Daily Sale</th>
+                        <% } %>
                         <th>On Hand</th>
                         <th>Min</th>
                         <th id="max-th">Max</th>
@@ -37,6 +47,9 @@
                           <td><%= item.ItemCode %></td>
                           <td><%= item.ItemName %></td>
                           <td><%= item.ListName %></td>
+                          <% if(page == "report"){ %>
+                            <td><%= item.AvgDaily %></td>
+                          <% } %>
                           <td><%= item.OnHand %></td>
                           <td><%= item.MinStock %></td>
                           <td><%= item.MaxStock %></td>

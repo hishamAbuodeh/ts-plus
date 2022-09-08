@@ -440,10 +440,10 @@ const report = async (req,res) => {
     try{
         if(page == 'request'){
             let records = await prisma.findOrderList()
-            res.render('partials/report',{results:records})
+            res.render('partials/report',{results:records,page:"report"})
         }else if(page == 'transfer'){
             let records = await prisma.findOrderListTransfer()
-            res.render('partials/report',{results:records})
+            res.render('partials/report',{results:records,page:"allreport"})
         }else if(page == 'receipt'){
             let records = await prisma.findOrderReceiptList()
             res.render('partials/reqRecReport',{results:records,page})
@@ -462,7 +462,7 @@ const allReport = async (req,res) => {
         if(page != 'receipt' && page != 'deliver'){
             let genCode = await file.previousGetGenCode(req.session.whsCode,'./postNumber.txt',req.session.employeeNO)
             let records = await prisma.findAllSent(genCode)
-            res.render('partials/report',{results:records})
+            res.render('partials/report',{results:records,page:"allreport"})
         }else if(page == 'receipt'){
             let records = await prisma.findAllReceipt(genCode)
             res.render('partials/reqRecAllReport',{results:records,page})
