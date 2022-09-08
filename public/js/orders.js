@@ -370,7 +370,13 @@ const showReport = () => {
           if(page == 'request'){
             $("#excel").on("click", (e) => {
               $.post('/Excel/requestReport').then(msg => {
-                console.log(msg)
+                if(msg == 'done'){
+                  alert("تم استخراج اكسل شيت");
+                }else if(msg == 'error'){
+                  alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+                }else if(msg == 'noData'){
+                  alert('الرجاء تحديد كميات لبعض المواد ثم اعادة المحاولة')
+                }
               })
             });
           }
