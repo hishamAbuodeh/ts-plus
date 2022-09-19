@@ -13,6 +13,9 @@
                     <th>Qty</th>
                     <th>Unit</th>
                     <th>Note</th>
+                    <th style="display:none;">Price</th>
+                    <th style="display:none;">Scale Type</th>
+                    <th style="display:none;">Whs Code</th>
                   </tr>
                 </thead>
                 <tbody id="tbody">
@@ -36,6 +39,9 @@
                         <% } %>
                         <td id="td7-<%= item.id %>"><%= item.BuyUnitMsr %></td>
                         <td id="td4-<%= item.id %>"><%= item.Note %></td>
+                        <td id="price-<%= item.id %>" style="display:none;"><%= item.Price %></td>
+                        <td id="type-<%= item.id %>" style="display:none;"><%= item.ScaleType %></td>
+                        <td id="whs-<%= item.id %>" style="display:none;"><%= item.WhsCode[0] %></td>
                       </tr>
                     <% } %>
                 </tbody>

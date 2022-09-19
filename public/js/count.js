@@ -153,6 +153,7 @@ const tbodyFunc = (e) => {
 const inputOrder = (id) => {
     $(`#input-${id}`).focus();
     const input = $(`#input-${id}`);
+    const whs = $(`#whs-${id}`)[0].innerHTML;
     const value = input.val();
     let previousVal = false;
     if (value > 0) {
@@ -163,6 +164,7 @@ const inputOrder = (id) => {
       save(id, input, previousVal);
       input.off("blur");
       document.getElementById(`input-${id}`).removeEventListener('keydown',tabFunc)
+      document.getElementById(`input-${id}`).removeEventListener('input',changeFunc)
     });
     const tabFunc = (e) => {
       if(e.key == 'Tab'){
@@ -172,7 +174,48 @@ const inputOrder = (id) => {
           },100)
       }
     }
+    const getQty13 = (value,scaleType,unitPrice) => {
+      let qty = value.substring(value.length - 6);
+      qty = qty.substring(0, qty.length -1);
+      qty = (qty.slice(0, 2) + "." + qty.slice(2));
+      qty = parseFloat(qty);
+      if(scaleType != 'Qnty'){
+        qty = qty/unitPrice
+        qty = qty.toFixed(2)
+      }
+      return qty
+    }
+    const getQty12 = (value,scaleType,unitPrice) => {
+      let qty = value.substring(value.length - 6);
+      qty = qty.substring(0, qty.length -1);
+      qty = (qty.slice(0, 2) + "." + qty.slice(2));
+      qty = parseFloat(qty);
+      if(scaleType != 'Qnty'){
+        qty = qty/unitPrice
+        qty = qty.toFixed(2)
+      }
+      return qty
+    }
+    const changeFunc = (e) => {
+      const scaleType = $(`#type-${id}`)[0].innerHTML;
+      const unitPrice = $(`#price-${id}`)[0].innerHTML;
+      let value = e.target.value
+      const arr = value.split("")
+      if(whs == '4'){
+        if(arr.length == 12){
+          const qty = getQty12(value,scaleType,unitPrice)
+          input.val(qty)
+        }
+
+      }else{
+        if(arr.length == 13){
+          const qty = getQty13(value,scaleType,unitPrice)
+          input.val(qty)
+        }
+      }
+    }
     document.getElementById(`input-${id}`).addEventListener('keydown',tabFunc)
+    document.getElementById(`input-${id}`).addEventListener('input',changeFunc)
 };
 
 const edit = (id) => {

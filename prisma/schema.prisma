@@ -176,6 +176,8 @@ model countRequest{
     CodeBars String @default("no bar code")
     Note String
     Qnty Decimal @db.Decimal(10,6) @default(0)
+    Price Decimal @db.Decimal(10,6) @default(0)
+    ScaleType String
     Status String @default("pending")
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

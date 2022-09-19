@@ -851,6 +851,8 @@ const saveCountRequest = async(result) => {
             WhsCode:rec.WhsCode,
             CodeBars:rec.CodeBars,
             Note:rec.Note,
+            Price:rec.Price,
+            ScaleType:rec.ScaleType,
         }
     })
     return prisma.createAllcountReq(mappedData)
