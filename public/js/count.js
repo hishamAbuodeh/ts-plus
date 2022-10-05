@@ -351,7 +351,7 @@ const setOrderValueZero = async (id) => {
 
   const showReport = () => {
     setTimeout(() => {
-      $.get(`/Count/Report`).then((results) => {
+      $.get(`/Count/Report/${countName}`).then((results) => {
         if (results == "error") {
           alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
         } else {
