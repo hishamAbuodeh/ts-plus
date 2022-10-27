@@ -14,6 +14,8 @@ const COUNTING_REQUEST_TABLE= process.env.COUNTING_REQUEST_TABLE
 const SQL_REQUEST_TRANSFER_PROCEDURE = process.env.SQL_REQUEST_TRANSFER_PROCEDURE
 const SQL_RECEIVING_RETURNPO_PROCEDURE = process.env.SQL_RECEIVING_RETURNPO_PROCEDURE
 const SQL_RECEIVINGPO_PROCEDURE = process.env.SQL_RECEIVINGPO_PROCEDURE
+const MAIN_WHAREHOUSE =process.env.MAIN_WHAREHOUSE
+const CONSUMABLE_WAREHOUSE =process.env.CONSUMABLE_WAREHOUSE
 
 const toggleRequestButton = (requestDay,requestHour) => {
     const loggedDay = new Date().toLocaleString('en-us', {  weekday: 'long' });
@@ -223,13 +225,13 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
                 order = rec.Order
                 sapProcess = 3
             }else if(page == "request"){
-                warehousefrom = rec.ListName == 'Consumable'? '104' : '102';
+                warehousefrom = rec.ListName == 'Consumable'? CONSUMABLE_WAREHOUSE : MAIN_WHAREHOUSE;
                 warehouseTo = rec.WhsCode
                 order = rec.Order
                 sapProcess = 0
             }else if(page == "receipt"){
                 warehousefrom = rec.WhsCode
-                warehouseTo = rec.ListName == 'Consumable'? '104' : '102';
+                warehouseTo = rec.ListName == 'Consumable'? CONSUMABLE_WAREHOUSE : MAIN_WHAREHOUSE;
                 order = rec.Difference
                 sapProcess = 0
             }
