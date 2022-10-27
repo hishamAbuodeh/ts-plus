@@ -464,7 +464,7 @@ const findPOreceivedList = async() => {
     })
 }
 
-const findCountsList = async() => {
+const findCountsList = async(value) => {
     return await prisma.countRequest.findMany({
         orderBy:[
             {
@@ -474,7 +474,9 @@ const findCountsList = async() => {
         where:{
             Qnty : {
                 not : 0.000000
-            }
+            },
+            CountingName : value
+
         }
     }).catch((e) => {
         console.log(e)

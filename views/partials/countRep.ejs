@@ -23,7 +23,7 @@
                         </thead>
                         <tbody id="tbody">
                         <% for(let i = 0; i < data.length; i++){ const item = data[i] %>
-                            <tr class="trEfects hide" id="tr<%= item.id %>">
+                            <tr class="trEfects hide" id="tr-<%= item.id %>">
                                 <td><%= i + 1 %></td>
                                 <td id="td1-<%= item.id %>"><%= item.ItemCode %></td>
                                 <td id="td2-<%= item.id %>"><%= item.ItemName %></td>

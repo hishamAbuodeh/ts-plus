@@ -163,7 +163,7 @@ const inputOrder = (id) => {
 };
 
 const edit = (id) => {
-    const tr = $(`#tr${id}`);
+    const tr = $(`#tr-${id}`);
     tr.removeClass("active-input");
     tr.removeClass("semi-active");
     tr.addClass("hide");
@@ -171,7 +171,7 @@ const edit = (id) => {
   };
 
 const save = (id, input, previousVal) => {
-    const tr = $(`#tr${id}`);
+    const tr = $(`#tr-${id}`);
     let value = input.val();
     if (value == "") {
       if (previousVal) {

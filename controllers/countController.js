@@ -55,8 +55,9 @@ const saveQuantity = async (req,res) => {
 }
 
 const report = async (req,res) => {
+    const { value } = req.params
     try{
-        const data = await prisma.findCountsList()
+        const data = await prisma.findCountsList(value)
         res.render('partials/countRep',{data})
     }catch(err){
         res.send('error')

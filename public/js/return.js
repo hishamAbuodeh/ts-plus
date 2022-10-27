@@ -60,14 +60,14 @@ $(function () {
 });
 
 const edit = (id) => {
-  const tr = $(`#tr${id}`);
+  const tr = $(`#tr-${id}`);
   tr.removeClass("active-input");
   tr.addClass("hide");
   tr.css("background-color", "");
 };
 
 const save = (id, input, previousVal, lastValue,type) => {
-  const tr = $(`#tr${id}`);
+  const tr = $(`#tr-${id}`);
   let value = input.val();
   if (lastValue == value && value != "") {
     tr.addClass("active-input");

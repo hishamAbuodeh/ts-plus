@@ -147,31 +147,67 @@ const tbodyFunc = (e) => {
     const fullID = e.path[0].id;
     const arr = fullID.split("-");
     const id = arr[1];
-    inputOrder(id);
+    if(arr[0] != "checkbox" && arr[0] != "qnty" && arr[0] != "qntytd"){
+      scan(id);
+    }else if(arr[0] == "qnty" || arr[0] == "qntytd"){
+      inputOrder(id)
+    }else if(arr[0] == "checkbox"){
+      // inputOrder(id)
+    }
 }
 
 const inputOrder = (id) => {
+  $(`#qnty-${id}`).focus();
+  const qtyInput  = $(`#qnty-${id}`)
+  const value = qtyInput.val();
+  const tr = $(`#tr-${id}`);
+    let previousVal = false;
+    if (value > 0) {
+      previousVal = true;
+      edit(id);
+    }
+    $(`#qnty-${id}`).on("blur", () => {
+      const qtyInput  = $(`#qnty-${id}`)
+      save(id, qtyInput, previousVal);
+      qtyInput.off("blur");
+      document.getElementById(`qnty-${id}`).removeEventListener('keydown',tabFunc)
+    });
+    const tabFunc = (e) => {
+      if(e.key == 'Tab'){
+        const nextId = $(`#tr-${id}`).next()[0].id.split("-")[1]
+        setTimeout(() => {
+          scan(nextId)
+        },1)
+      }
+    }
+    document.getElementById(`qnty-${id}`).addEventListener('keydown',tabFunc)
+}
+
+const scan = (id) => {
     $(`#input-${id}`).focus();
     const input = $(`#input-${id}`);
+    const qtyInput  = $(`#qnty-${id}`)
+    const checkbox  = $(`#checkbox-${id}`).is(":checked")
     const whs = $(`#whs-${id}`)[0].innerHTML;
-    const value = input.val();
+    const value = qtyInput.val();
     let previousVal = false;
     if (value > 0) {
       previousVal = true;
       edit(id);
     }
     $(`#input-${id}`).on("blur", () => {
-      save(id, input, previousVal);
+      const qtyInput  = $(`#qnty-${id}`)
+      save(id, qtyInput, previousVal);
       input.off("blur");
       document.getElementById(`input-${id}`).removeEventListener('keydown',tabFunc)
       document.getElementById(`input-${id}`).removeEventListener('input',changeFunc)
     });
     const tabFunc = (e) => {
       if(e.key == 'Tab'){
-          setTimeout(() => {
-            const active = document.querySelector(":focus")
-            active.click()
-          },100)
+        const nextId = $(`#tr-${id}`).next()[0].id.split("-")[1]
+        setTimeout(() => {
+          scan(nextId)
+        },1)
       }
     }
     const getQty13 = (value,scaleType,unitPrice) => {
@@ -180,8 +216,9 @@ const inputOrder = (id) => {
       qty = (qty.slice(0, 2) + "." + qty.slice(2));
       qty = parseFloat(qty);
       if(scaleType != 'Qnty'){
-        qty = qty/unitPrice
+        qty = qty/parseFloat(unitPrice)
         qty = qty.toFixed(2)
+        qty = parseFloat(qty)
       }
       return qty
     }
@@ -191,8 +228,9 @@ const inputOrder = (id) => {
       qty = (qty.slice(0, 2) + "." + qty.slice(2));
       qty = parseFloat(qty);
       if(scaleType != 'Qnty'){
-        qty = qty/unitPrice
+        qty = qty/parseFloat(unitPrice)
         qty = qty.toFixed(2)
+        qty = parseFloat(qty)
       }
       return qty
     }
@@ -204,13 +242,23 @@ const inputOrder = (id) => {
       if(whs == '4'){
         if(arr.length == 12){
           const qty = getQty12(value,scaleType,unitPrice)
-          input.val(qty)
+          if(checkbox){
+            qtyInput.val(parseFloat(qtyInput.val()) - qty)
+          }else{
+            qtyInput.val(parseFloat(qtyInput.val()) + qty)
+          } 
+          input.val("")
         }
 
       }else{
         if(arr.length == 13){
           const qty = getQty13(value,scaleType,unitPrice)
-          input.val(qty)
+          if(checkbox){
+            qtyInput.val(parseFloat(qtyInput.val()) - qty)
+          }else{
+            qtyInput.val(parseFloat(qtyInput.val()) + qty)
+          } 
+          input.val("")
         }
       }
     }
@@ -219,7 +267,7 @@ const inputOrder = (id) => {
 };
 
 const edit = (id) => {
-    const tr = $(`#tr${id}`);
+    const tr = $(`#tr-${id}`);
     tr.removeClass("active-input");
     tr.removeClass("semi-active");
     tr.addClass("hide");
@@ -227,18 +275,18 @@ const edit = (id) => {
   };
 
 const save = (id, input, previousVal) => {
-    const tr = $(`#tr${id}`);
+    const tr = $(`#tr-${id}`);
     let value = input.val();
     if (value == "") {
       if (previousVal) {
         setOrderValueZero(id);
       }
-      input.val("");
+      input.val("0");
     } else if (value.toString()[0] == "-") {
       if (previousVal) {
         setOrderValueZero(id);
       }
-      input.val("");
+      input.val("0");
       alert("يرجى ادخال قيمة صحيحة");
     } else {
       value = trim(value);
@@ -248,8 +296,8 @@ const save = (id, input, previousVal) => {
               alert(
                 "IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم"
               );
-              input.val("");
-            } else {
+              input.val("0");
+            }else{
               tr.addClass("active-input");
               tr.removeClass("hide");
               tr.css("background-color", "green");
@@ -259,7 +307,7 @@ const save = (id, input, previousVal) => {
       if (previousVal) {
         setOrderValueZero(id);
       }
-      input.val("");
+      input.val("0");
     }
   }
   return;
@@ -303,7 +351,7 @@ const setOrderValueZero = async (id) => {
 
   const showReport = () => {
     setTimeout(() => {
-      $.get(`/Count/Report`).then((results) => {
+      $.get(`/Count/Report/${countName}`).then((results) => {
         if (results == "error") {
           alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
         } else {

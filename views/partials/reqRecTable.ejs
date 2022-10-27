@@ -27,11 +27,11 @@
                     <% if(item.Order > 0) { %>
                     <tr 
                         class="trEfects active-input" 
-                        id="tr<%= item.id %>"
+                        id="tr-<%= item.id %>"
                         style="background-color:green"
                       >
                     <% } else { %>
-                      <tr class="trEfects hide" id="tr<%= item.id %>">
+                      <tr class="trEfects hide" id="tr-<%= item.id %>">
                     <% } %>
                       <td id="td-<%= item.id %>"><%= item.ItemCode %></td>
                       <td id="td-<%= item.id %>"><%= item.ItemName %></td>
