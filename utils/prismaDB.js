@@ -1,6 +1,10 @@
+require('dotenv').config()
 const file = require('./readAndWriteFiles')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
+
+const MAIN_WHAREHOUSE =process.env.MAIN_WHAREHOUSE
+const CONSUMABLE_WAREHOUSE =process.env.CONSUMABLE_WAREHOUSE
 
 const createRecords = async (recordSet,page,employeeNO) => {
     return new Promise((resolve,reject) => {
@@ -540,7 +544,7 @@ const findOrderListTransfer = async() => {
                 not : 0.000000
             },
             Warehousefrom : {
-                not : '102'
+                not : MAIN_WHAREHOUSE
             }
         }
     }).catch((e) => {
@@ -779,7 +783,7 @@ const createNewRequestRecord = async (record,genCode,id,page) => {
           WhsName: record.WhsName != null? record.WhsName : undefined,
           CodeBars: record.CodeBars != null? record.CodeBars : undefined,
           ConvFactor: record.ConvFactor != null? record.ConvFactor : undefined,
-          Warehousefrom: page == "goTransfer" ? record.Warehouses : (record.ListName == 'Consumable'? '104' : '102'),
+          Warehousefrom: page == "goTransfer" ? record.Warehouses : (record.ListName == 'Consumable'? CONSUMABLE_WAREHOUSE : MAIN_WHAREHOUSE),
           Warehouses: page == "goTransfer" ? record.Warehouses : undefined,
           GenCode: genCode
         }
@@ -825,7 +829,7 @@ const updateCountrecord = async (recordID,value) => {
 const updateRecordFrom = async (value) => {
     await prisma.requestItems.updateMany({
         data : {
-            Warehousefrom: value != null? value : "102",
+            Warehousefrom: value != null? value : MAIN_WHAREHOUSE,
         }
     })
 }
@@ -1147,8 +1151,8 @@ const getAllGencodes = async () => {
         ],
         where:{
             OR:[
-                {Warehousefrom: '102'},
-                {Warehousefrom: '104'}
+                {Warehousefrom: MAIN_WHAREHOUSE},
+                {Warehousefrom: CONSUMABLE_WAREHOUSE}
             ],
             AND:{
                 Status:"approved"
@@ -1167,11 +1171,11 @@ const getAllTransferGencodes = async () => {
         ],
         where:{
             Warehousefrom: {
-                not:'102'
+                not:MAIN_WHAREHOUSE
             },
             AND:{
                 Warehousefrom: {
-                    not:'104'
+                    not:CONSUMABLE_WAREHOUSE
                 }
             },
             AND:{
