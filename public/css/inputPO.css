@@ -87,4 +87,12 @@
     background: transparent; 
   }
   
+  #poTable::-webkit-scrollbar {
+    display: none;
+  }
   
+  /* Hide scrollbar for IE, Edge and Firefox */
+  #poTable {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }

@@ -10,6 +10,7 @@ const HANA_DATABASE = process.env.HANA_DATABASE;
 const HANA_STOCK_REQUEST_PROCEDURE = process.env.HANA_STOCK_REQUEST_PROCEDURE;
 const HANA_STOCK_TRANSFER_PROCEDURE = process.env.HANA_STOCK_TRANSFER_PROCEDURE;
 const HANA_WHS_PROCEDURE = process.env.HANA_WHS_PROCEDURE;
+const HANA_OPEN_PO_NUMS = process.env.HANA_OPEN_PO_NUMS;
 const HANA_PO_PROCEDURE = process.env.HANA_PO_PROCEDURE;
 const HANA_REQUEST_RECEIPT_PROCEDURE = process.env.HANA_REQUEST_RECEIPT_PROCEDURE;
 
@@ -81,6 +82,11 @@ const warehouseMatch = async (whs) => {
   }  
 };
 
+const getPoNums = async (whs) => { 
+  const procedureStatment = `CALL "${HANA_DATABASE}"."${HANA_OPEN_PO_NUMS}"  ('${whs}')`;
+  return execute(procedureStatment);
+};
+
 const getPOitems = async (whs,number) => { 
   const procedureStatment = `CALL "${HANA_DATABASE}"."${HANA_PO_PROCEDURE}"  ('${whs}','${number}')`;
   return execute(procedureStatment);
@@ -116,5 +122,6 @@ module.exports = {
   warehouseMatch,
   getItemsTransfer,
   getPOitems,
-  getRequestReceipt
+  getRequestReceipt,
+  getPoNums
 };

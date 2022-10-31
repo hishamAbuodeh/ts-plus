@@ -12,6 +12,17 @@ const receiptPage = async (req,res) => {
     }
 }
 
+const getPoNoums = async(req,res) => {
+    const whs = req.session.whsCode
+    hana.getPoNums(whs)
+    .then(results => {
+        res.send(results)
+    })
+    .catch(() => {
+        res.send('error')
+    })
+}
+
 const sync = async (req,res) => {
     if(req.session.loggedin)
     {
@@ -101,5 +112,6 @@ module.exports = {
     saveQuantity,
     report,
     submit,
-    allReport
+    allReport,
+    getPoNoums
 }
