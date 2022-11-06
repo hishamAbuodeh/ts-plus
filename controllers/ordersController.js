@@ -401,12 +401,12 @@ const submit = async (req,res) =>{
 
 const deliverSubmit = async (req,res) =>{
     try{
-        let records = await prisma.findOrderReceiptList(req.session.whsCode)
+        let records = await prisma.findOrderDeliverList(req.session.whsCode)
         if(records.length > 0){
             functions.submitDeliverToSQL(records)
             .then(() => {
                 res.send('done')
-                prisma.deleteAllInReqReceipt(req.session.whsCode)
+                prisma.deleteDeliveredInReqReceipt(req.session.whsCode)
                 const mappedResults = records.map(rec => {
                     return {
                         ItemCode: rec.ItemCode,
@@ -447,7 +447,7 @@ const report = async (req,res) => {
             let records = await prisma.findOrderReceiptList(req.session.whsCode)
             res.render('partials/reqRecReport',{results:records,page})
         }else if(page == 'deliver'){
-            let records = await prisma.findOrderReceiptList(req.session.whsCode)
+            let records = await prisma.findOrderDeliverList(req.session.whsCode)
             res.render('partials/reqRecReport',{results:records,page})
         }
     }catch(err){

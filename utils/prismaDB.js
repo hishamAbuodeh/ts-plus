@@ -269,6 +269,24 @@ const deleteAllInReqReceipt = async(whs) => {
     })
 }
 
+const deleteDeliveredInReqReceipt = async(whs) => {
+    return new Promise((resolve,reject) => {
+        prisma.requestReceiptItems.deleteMany({
+            where:{
+                Warehousefrom:whs
+            }
+        })
+            .catch((e) => {
+                console.log(e)
+                reject()
+            })
+            .finally(async () => {
+                await prisma.$disconnect()
+                resolve()
+            })
+    })
+}
+
 const createTable = async(data) => {
     return new Promise((resolve,reject) => {
         createRequestReceiptItems(data)
@@ -588,6 +606,26 @@ const findOrderReceiptList = async(whs) => {
         ],
         where:{
             WhsCode:whs
+        }
+    })
+    .catch((e) => {
+        console.log(e)
+        return
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
+const findOrderDeliverList = async(whs) => {
+    return await prisma.requestReceiptItems.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
+        where:{
+            Warehousefrom:whs
         }
     })
     .catch((e) => {
@@ -1721,5 +1759,7 @@ module.exports = {
     findCountsList,
     getCountRequestHis,
     deleteCountStatus,
-    createAllcountHis
+    createAllcountHis,
+    findOrderDeliverList,
+    deleteDeliveredInReqReceipt
 }
