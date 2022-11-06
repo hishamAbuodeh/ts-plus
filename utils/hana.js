@@ -71,7 +71,7 @@ const warehouseMatch = async (whs) => {
     const data = {
       "group":list
     }
-    const status = await file.addMatchingFile(data);
+    const status = await file.addMatchingFile(data,whs);
     if (status != "file error") {
       return listStr;
     } else {

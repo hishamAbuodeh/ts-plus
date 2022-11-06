@@ -91,7 +91,7 @@ const getAndSaveData = async (whs,page,value,employeeNO) => {
                 })
             }else if(page == "goTransfer"){
                 const start = async () => {
-                    let match = await file.getMatchingFile()
+                    let match = await file.getMatchingFile(whs)
                     match = nameToCode(match)
                     const from = match[value]
                     return hana.getItemsTransfer(whs,from).then(results => {
@@ -394,12 +394,12 @@ const nameToCode = (list) => {
     return data
 }
 
-const syncPOData = async (results) => {
+const syncPOData = async (results,whs) => {
     try{
         return new Promise((resolve,reject) => {
             const start = async () => {
                 let skip = false
-                const pervious = await prisma.getAllSavedPOs()
+                const pervious = await prisma.getAllSavedPOs(whs)
                 if(pervious.length > 0){
                     if(pervious[0].DocNum == results[0].DocNum){
                         resolve(pervious)
@@ -407,7 +407,7 @@ const syncPOData = async (results) => {
                     }
                 }
                 if(!skip){
-                    const saved = await prisma.saveAndGetPOs(results)
+                    const saved = await prisma.saveAndGetPOs(results,whs)
                     if(saved){
                         resolve(saved)
                     }else{
@@ -550,12 +550,12 @@ const checkOpenDays = (days) => {
     return open
 }
 
-const saveTransferReq = async(results) => {
+const saveTransferReq = async(results,whs) => {
     try{
         return new Promise((resolve,reject) => {
             const start = async () => {
                 let skip = false
-                const pervious = await prisma.getAllSavedDelivery()
+                const pervious = await prisma.getAllSavedDelivery(whs)
                 if(pervious.length > 0){
                     if(pervious[0].GenCode == results[0].GenCode){
                         resolve(pervious)
@@ -563,7 +563,7 @@ const saveTransferReq = async(results) => {
                     }
                 }
                 if(!skip){
-                    const saved = await prisma.saveAndGetDelivery(results)
+                    const saved = await prisma.saveAndGetDelivery(results,whs)
                     if(saved){
                         resolve(saved)
                     }else{
@@ -844,7 +844,6 @@ const updateCountNo = async(username,counts) => {
 const saveCountRequest = async(result) => {
     const mappedData = result.map((rec) => {
         return {
-            id:rec.ID,
             CountingName:rec.CountingName,
             CountingDate:rec.CountingDate,
             ItemCode:rec.ItemCode,
