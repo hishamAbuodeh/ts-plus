@@ -646,9 +646,9 @@ const sync = async (req,res) => {
                             GenCode:rec.GenCode,
                         }
                     })
-                    const data = await functions.saveTransferReq(mappedData,req.session.whsCode)
+                    const data = await functions.saveTransferReq(mappedData,mappedData[0].WhsCode)
                     if(data){
-                        res.render('partials/reqRecTable',{info:{results:mappedData,page:"deliver"}})
+                        res.render('partials/reqRecTable',{info:{results:data,page:"deliver"}})
                     }else{
                         res.send('error')
                     }

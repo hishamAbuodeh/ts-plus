@@ -516,7 +516,9 @@ const findAllPOs = async(whs) => {
                 ItemCode: 'asc',
             }
         ],
-        WhsCode:whs
+        where:{
+            WhsCode:whs
+        }
     })
     .catch((e) => {
         console.log(e)
@@ -1360,7 +1362,7 @@ const deleteAllDelivery = async (whs) => {
 }
 
 const saveAllDelivery = async (mappedData) => {
-    return prisma.requestReceiptItems.createMany({
+    return await prisma.requestReceiptItems.createMany({
         data:mappedData,
         skipDuplicates:true
     })
@@ -1468,7 +1470,7 @@ const getAllPOs = async (whs) => {
     })
 }
 
-const getAllDelivery = async () => {
+const getAllDelivery = async (whs) => {
     return await prisma.requestReceiptItems.findMany({
         orderBy:[
             {
