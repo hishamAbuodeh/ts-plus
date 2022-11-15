@@ -1,5 +1,6 @@
 'use strict';
 require('dotenv').config();
+// require('events').EventEmitter.defaultMaxListeners = 30
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');

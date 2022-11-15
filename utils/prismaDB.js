@@ -1219,16 +1219,23 @@ const getAllGencodes = async (whs) => {
             }
         ],
         where:{
-            OR:[
-                {Warehousefrom: MAIN_WHAREHOUSE},
-                {Warehousefrom: CONSUMABLE_WAREHOUSE},
-                {Status:"approved"},
-                {Status:"delivered"}
-            ],
-            AND:{
-                // Status:"approved",
-                WhsCode: whs
-            }
+            AND:[
+                {
+                    OR:[
+                        {Warehousefrom: MAIN_WHAREHOUSE},
+                        {Warehousefrom: CONSUMABLE_WAREHOUSE},
+                    ],
+                },
+                {
+                    OR:[
+                        {Status:"approved"},
+                        {Status:"delivered"},
+                    ],
+                },
+                {
+                    WhsCode: whs
+                }
+            ]
         }
       })
 }
@@ -1242,18 +1249,20 @@ const getAllTransferGencodes = async (whs) => {
             }
         ],
         where:{
-            Warehousefrom: {
-                not:MAIN_WHAREHOUSE
-            },
-            AND:{
-                Warehousefrom: {
-                    not:CONSUMABLE_WAREHOUSE
-                }
-            },
-            AND:{
-                Status:"approved",
-                WhsCode:whs
-            }
+            AND:[
+                {
+                    Warehousefrom: {
+                        not:CONSUMABLE_WAREHOUSE
+                    }
+                },
+                {
+                    Warehousefrom: {
+                        not:MAIN_WHAREHOUSE
+                    }
+                },
+                {Status:"approved"},
+                {WhsCode:whs}
+            ]
         }
       })
 }
