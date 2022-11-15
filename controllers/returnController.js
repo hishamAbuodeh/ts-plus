@@ -40,18 +40,18 @@ const saveValue = async (req,res) => {
 const submit = async (req,res) =>{
     const {note} = req.params
     try{
-        let records = await prisma.findReturnList()
-        const genCode = await file.getGenCode(req.session.whsCode,'./refNumber.txt',req.session.employeeNO)
+        let records = await prisma.findReturnList(req.session.whsCode)
+        const genCode = await file.getGenCode(req.session.whsCode,`./${req.session.whsCode}/refNumber.txt`,req.session.employeeNO)
         if(records.length > 0){
             functions.sendReturnItems(records,req.session.username,note,genCode)
             .then(() => {
                 res.send('done')
                 const start = async() => {
-                    const no = await file.getPostNo('./refNumber.txt')
-                    file.updateGenCode(no,'./refNumber.txt')
+                    const no = await file.getPostNo(`./${req.session.whsCode}/refNumber.txt`)
+                    file.updateGenCode(no,`./${req.session.whsCode}/refNumber.txt`)
                     const transfer = async () => {
-                        records = await prisma.findReturnList()
-                        prisma.transferToReturnHes(records,genCode)
+                        records = await prisma.findReturnList(req.session.whsCode)
+                        prisma.transferToReturnHes(records,genCode,req.session.whsCode)
                     }
                     transfer()
                 }
@@ -70,7 +70,7 @@ const submit = async (req,res) =>{
 
 const report = async (req,res) => {
     try{
-        let records = await prisma.findReturnList()
+        let records = await prisma.findReturnList(req.session.whsCode)
         res.render('partials/retReport',{results:records})
     }catch(err){
         res.send('error')
@@ -79,7 +79,7 @@ const report = async (req,res) => {
 
 const allReport = async (req,res) => {
     try{
-        let genCode = await file.previousGetGenCode(req.session.whsCode,'./refNumber.txt',req.session.employeeNO)
+        let genCode = await file.previousGetGenCode(req.session.whsCode,`./${req.session.whsCode}/refNumber.txt`,req.session.employeeNO)
         let records = await prisma.findAllSentReturn(genCode)
         res.render('partials/retReport',{results:records})
     }catch(err){

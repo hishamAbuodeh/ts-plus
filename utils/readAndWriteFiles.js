@@ -55,10 +55,10 @@ const getPostNo = async (path) => {
     }
 }
 
-const addMatchingFile = async (file) => {
+const addMatchingFile = async (file,whs) => {
     const data = JSON.stringify(file);
     try {
-        fs.writeFileSync('./matching.txt', data);
+        fs.writeFileSync(`./${whs}/matching.txt`, data);
         return 'added'
     } catch (err) {
         console.error(err);
@@ -66,9 +66,9 @@ const addMatchingFile = async (file) => {
     }
 }
 
-const getMatchingFile = async() => {
+const getMatchingFile = async(whs) => {
     try {
-        const file = fs.readFileSync('./matching.txt', 'utf8', (err, data) => {
+        const file = fs.readFileSync(`./${whs}/matching.txt`, 'utf8', (err, data) => {
             if (err) {
                 console.log(err);
             }
@@ -81,9 +81,9 @@ const getMatchingFile = async() => {
     }
 }
 
-const addLabel = async (file) => {
+const addLabel = async (file,whs) => {
     try {
-        fs.writeFileSync('./label.txt', file);
+        fs.writeFileSync(`./${whs}/label.txt`, file);
         return 'added'
     } catch (err) {
         console.error(err);
@@ -91,9 +91,9 @@ const addLabel = async (file) => {
     }
 }
 
-const getlabel = async() => {
+const getlabel = async(whs) => {
     try {
-        const file = fs.readFileSync('./label.txt', 'utf8', (err, data) => {
+        const file = fs.readFileSync(`./${whs}/label.txt`, 'utf8', (err, data) => {
             if (err) {
                 console.log(err);
             }

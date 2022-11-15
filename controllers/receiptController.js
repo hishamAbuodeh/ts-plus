@@ -33,7 +33,7 @@ const sync = async (req,res) => {
         }).then((results) => {
             if(results.length > 0){
                 const start = async () => {
-                    const data = await functions.syncPOData(results)
+                    const data = await functions.syncPOData(results,req.session.whsCode)
                     res.render('partials/recTable',{data})
                 }
                 start()
@@ -64,7 +64,7 @@ const saveQuantity = async (req,res) => {
 
 const report = async (req,res) => {
     try{
-        const records = await prisma.findPOreceivedList()
+        const records = await prisma.findPOreceivedList(req.session.whsCode)
         res.render('partials/recReport',{results:records})
     }catch(err){
         res.send('error')
@@ -74,7 +74,7 @@ const report = async (req,res) => {
 const allReport = async (req,res) => {
     try{
         const {number,begin,end} = req.params
-        let records = await prisma.findAllHisPOs(number,begin,end)
+        let records = await prisma.findAllHisPOs(number,begin,end,req.session.whsCode)
         records = records.map(rec => {
             if(parseInt(rec.Order) == 0){
                 rec.Order = 'مرتجع'
@@ -89,14 +89,14 @@ const allReport = async (req,res) => {
 
 const submit = async (req,res) =>{
     try{
-        let records = await prisma.findAllPOs()
-        const no = await file.getPostNo('./POreceiving.txt')
-        const genCode = await file.getGenCode(req.session.whsCode,'./POreceiving.txt',req.session.employeeNO)
+        let records = await prisma.findAllPOs(req.session.whsCode)
+        const no = await file.getPostNo(`./${req.session.whsCode}/POreceiving.txt`)
+        const genCode = await file.getGenCode(req.session.whsCode,`./${req.session.whsCode}/POreceiving.txt`,req.session.employeeNO)
         functions.sendPOtoSQL(records,req.session.username,genCode)
         .then(() => {
             res.send('done')
-            prisma.transferToReceHis(records,genCode)
-            file.updateGenCode(no,'./POreceiving.txt')
+            prisma.transferToReceHis(records,genCode,req.session.whsCode)
+            file.updateGenCode(no,`./${req.session.whsCode}/POreceiving.txt`)
         })
         .catch(err => {
             res.send('error')

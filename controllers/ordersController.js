@@ -9,7 +9,7 @@ const requestPage = async (req,res) => {
     {
         prisma.getDataLocal(req.session.whsCode,req.session.employeeNO).then(results => {
             const start = async () => {
-                const value = await file.getlabel()
+                const value = await file.getlabel(req.session.whsCode)
                 const data = {
                     results,
                     username : req.session.username,
@@ -30,7 +30,7 @@ const requestPage = async (req,res) => {
 const requestReceiptPage = async (req,res) => {
     if(req.session.loggedin)
     {
-        prisma.getGenCodeLocal().then(results => {
+        prisma.getGenCodeLocal(req.session.whsCode).then(results => {
             res.render('reqReceipt',{data:results})
         }).catch(err => {
             res.render('error')
@@ -52,7 +52,7 @@ const deliveryPage = async (req,res) => {
 const printPage = async (req,res) => {
     if(req.session.loggedin)
     {
-        prisma.getAllTransferGencodes().then(results => {
+        prisma.getAllTransferGencodes(req.session.whsCode).then(results => {
             res.render('print',{data:results})
         }).catch(err => {
             res.render('error')
@@ -72,7 +72,7 @@ const printReport = async(req,res) => {
         let mappedData;
         if(page == "request"){
             records = await prisma.findAllSent(genCode)
-            let match = await file.getMatchingFile()
+            let match = await file.getMatchingFile(req.session.whsCode)
             match = functions.codeToName(match)
             from = match[`${records[0].Warehousefrom}`]
             to = records[0].WhsName
@@ -129,7 +129,7 @@ const printReport = async(req,res) => {
 const requestReceiptTable = async (req,res) => {
     if(req.session.loggedin)
     {
-        prisma.getSavedLocal().then(results => {
+        prisma.getSavedLocal(req.session.whsCode).then(results => {
             res.render('receiptGenCode',{data:results})
         }).catch(err => {
             res.render('error')
@@ -165,7 +165,7 @@ const chooseFrom = async (req,res) => {
             if(str){
                 const start = async() => {
                     const arr = functions.configWarehouses(str)
-                    let match = await file.getMatchingFile()
+                    let match = await file.getMatchingFile(req.session.whsCode)
                     match = functions.codeToName(match)
                     const data = {
                         results:arr,
@@ -218,7 +218,6 @@ const syncReqReceiptData = async(req,res) => {
         if(data){
             const mappedData = data.map(rec => {
                 return {
-                    id:rec.id,
                     ItemCode:rec.ItemCode,
                     ItemName:rec.ItemName,
                     ListNum:rec.ListNum,
@@ -238,7 +237,7 @@ const syncReqReceiptData = async(req,res) => {
                     GenCode:rec.GenCode,
                 }
             })
-            prisma.deleteAllInReqReceipt().then(() => {
+            prisma.deleteAllInReqReceipt(req.session.whsCode).then(() => {
                 prisma.createTable(mappedData).then(() => {
                     res.send('done')
                 }).catch(() => {
@@ -324,12 +323,12 @@ const submit = async (req,res) =>{
         let records
         let managerEmail = null
         if(page == 'request'){
-            records = await prisma.findOrderList()
+            records = await prisma.findOrderList(req.session.whsCode)
         }else if(page == 'transfer'){
-            records = await prisma.findOrderListTransfer()
+            records = await prisma.findOrderListTransfer(req.session.whsCode)
             managerEmail = req.session.managerEmail
         }else if(page == 'receipt'){
-            records = await prisma.findOrderReceiptList()
+            records = await prisma.findOrderReceiptList(req.session.whsCode)
         }
         if(records.length > 0){
             functions.sendRequestOrder(records,req.session.username,page,note)
@@ -351,8 +350,8 @@ const submit = async (req,res) =>{
                     sendEmail(text,subject,managerEmail)
                 }
                 const start = async() => {
-                    const no = await file.getPostNo('./postNumber.txt')
-                    file.updateGenCode(no,'./postNumber.txt')
+                    const no = await file.getPostNo(`./${req.session.whsCode}/postNumber.txt`)
+                    file.updateGenCode(no,`./${req.session.whsCode}/postNumber.txt`)
                     const transfer = async () => {
                         records = await prisma.findOrderList()
                         prisma.transferToHes(records,req.session.whsCode)
@@ -362,7 +361,7 @@ const submit = async (req,res) =>{
                 if(page != 'receipt'){
                     start()
                 }else if(page == 'receipt'){
-                    prisma.deleteAllInReqReceipt().then(() => {
+                    prisma.deleteAllInReqReceipt(req.session.whsCode).then(() => {
                         const genCode = records[0].GenCode
                         new Promise((resolve,reject) => {
                             const length = records.length
@@ -402,12 +401,12 @@ const submit = async (req,res) =>{
 
 const deliverSubmit = async (req,res) =>{
     try{
-        let records = await prisma.findOrderReceiptList()
+        let records = await prisma.findOrderDeliverList(req.session.whsCode)
         if(records.length > 0){
             functions.submitDeliverToSQL(records)
             .then(() => {
                 res.send('done')
-                prisma.deleteAllInReqReceipt()
+                prisma.deleteDeliveredInReqReceipt(req.session.whsCode)
                 const mappedResults = records.map(rec => {
                     return {
                         ItemCode: rec.ItemCode,
@@ -439,16 +438,16 @@ const report = async (req,res) => {
     const {page} = req.params
     try{
         if(page == 'request'){
-            let records = await prisma.findOrderList()
+            let records = await prisma.findOrderList(req.session.whsCode)
             res.render('partials/report',{results:records,page:"report"})
         }else if(page == 'transfer'){
-            let records = await prisma.findOrderListTransfer()
+            let records = await prisma.findOrderListTransfer(req.session.whsCode)
             res.render('partials/report',{results:records,page:"allreport"})
         }else if(page == 'receipt'){
-            let records = await prisma.findOrderReceiptList()
+            let records = await prisma.findOrderReceiptList(req.session.whsCode)
             res.render('partials/reqRecReport',{results:records,page})
         }else if(page == 'deliver'){
-            let records = await prisma.findOrderReceiptList()
+            let records = await prisma.findOrderDeliverList(req.session.whsCode)
             res.render('partials/reqRecReport',{results:records,page})
         }
     }catch(err){
@@ -460,7 +459,7 @@ const allReport = async (req,res) => {
     const {page,genCode} = req.params
     try{
         if(page != 'receipt' && page != 'deliver'){
-            let genCode = await file.previousGetGenCode(req.session.whsCode,'./postNumber.txt',req.session.employeeNO)
+            let genCode = await file.previousGetGenCode(req.session.whsCode,`./${req.session.whsCode}/postNumber.txt`,req.session.employeeNO)
             let records = await prisma.findAllSent(genCode)
             res.render('partials/report',{results:records,page:"allreport"})
         }else if(page == 'receipt'){
@@ -479,7 +478,7 @@ const changeFrom = async(req,res) => {
     try{
         let {value} = req.query
         if(value){
-            let match = await file.getMatchingFile()
+            let match = await file.getMatchingFile(req.session.whsCode)
             match = functions.nameToCode(match)
             value = match[value]
         }else{
@@ -498,7 +497,7 @@ const changeFrom = async(req,res) => {
 }
 
 const createSuggest = async (req,res) => {
-    const rows = await prisma.findAllRequest()
+    const rows = await prisma.findAllRequest(req.session.whsCode)
     const length = rows.length
     const arr = []
     rows.forEach(rec => {
@@ -571,7 +570,7 @@ const createSuggest = async (req,res) => {
 }
 
 const removeSuggest = async (req,res) => {
-    const rows = await prisma.findAllRequest()
+    const rows = await prisma.findAllRequest(req.session.whsCode)
     const length = rows.length
     const arr = []
     rows.forEach(rec => {
@@ -607,7 +606,7 @@ const removeSuggest = async (req,res) => {
 
 const label = async(req,res) => {
     const { value } = req.params
-    file.addLabel(value)
+    file.addLabel(value,req.session.whsCode)
     res.send('done')
 }
 
@@ -628,7 +627,6 @@ const sync = async (req,res) => {
                 const start = async () => {
                     const mappedData = results.map(rec => {
                         return {
-                            id:rec.ID,
                             ItemCode:rec.ItemCode,
                             ItemName:rec.ItemName,
                             ListNum:rec.ListNum,
@@ -648,9 +646,9 @@ const sync = async (req,res) => {
                             GenCode:rec.GenCode,
                         }
                     })
-                    const data = await functions.saveTransferReq(mappedData)
+                    const data = await functions.saveTransferReq(mappedData,mappedData[0].WhsCode)
                     if(data){
-                        res.render('partials/reqRecTable',{info:{results:mappedData,page:"deliver"}})
+                        res.render('partials/reqRecTable',{info:{results:data,page:"deliver"}})
                     }else{
                         res.send('error')
                     }

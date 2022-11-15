@@ -8,8 +8,8 @@ datasource db {
 }
 
 model requestItems {
-    id Int @id @unique
-    ItemCode String @unique
+    id Int @id @default(autoincrement())
+    ItemCode String
     ItemName String
     ListNum Int
     ListName String
@@ -35,8 +35,8 @@ model requestItems {
 }
 
 model requestReceiptItems {
-    id Int @id @unique
-    ItemCode String @unique
+    id Int @id @default(autoincrement())
+    ItemCode String
     ItemName String
     ListNum Int
     ListName String
@@ -92,7 +92,7 @@ model deliveredItemshistory {
     WhsName String
     Order Decimal @db.Decimal(10,6)
     OrderRequest Decimal @db.Decimal(10,6)
-    Status String @default("deliverd")
+    Status String @default("delivered")
     BuyUnitMsr String
     GenCode String
     createdAt DateTime @default(now())
@@ -100,7 +100,7 @@ model deliveredItemshistory {
 }
 
 model receiptItems{
-    id Int @id @unique
+    id Int @id @default(autoincrement())
     ItemCode String
     LineNum Int
     Dscription String
@@ -108,7 +108,7 @@ model receiptItems{
     WhsCode String
     CardName String
     CardCode String
-    DocNum Int
+    DocNum String
     Status String @default("pending")
     UgpName String
     Order Decimal @db.Decimal(10,6)
@@ -126,7 +126,7 @@ model receipthistory{
     WhsCode String
     CardName String
     CardCode String
-    DocNum Int
+    DocNum String
     Status String @default("received")
     UgpName String
     Order Decimal @db.Decimal(10,6)
@@ -137,7 +137,7 @@ model receipthistory{
 }
 
 model returnItems{
-    id Int @id @unique
+    id Int @id @default(autoincrement())
     ItemCode String
     ItemName String
     CodeBars String @default("no bar code")
@@ -166,7 +166,7 @@ model returnhistory{
 }
 
 model countRequest{
-    id Int @id @unique
+    id Int @id @default(autoincrement())
     CountingName String
     CountingDate DateTime
     ItemCode String

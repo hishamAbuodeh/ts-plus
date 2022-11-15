@@ -8,8 +8,11 @@ const CONSUMABLE_WAREHOUSE =process.env.CONSUMABLE_WAREHOUSE
 
 const createRecords = async (recordSet,page,employeeNO) => {
     return new Promise((resolve,reject) => {
-        const genCode = file.getGenCode(recordSet[0].WhsCode,'./postNumber.txt',employeeNO)
-        resolve(genCode)
+        const start = async () => {
+            const genCode = await file.getGenCode(recordSet[0].WhsCode,`./${recordSet[0].WhsCode}/postNumber.txt`,employeeNO)
+            resolve(genCode)
+        }
+        start()
     }).then(genCode => {
         // const generateRecords = async () => {
         //     const previousRecords = await findOrderList()
@@ -21,7 +24,7 @@ const createRecords = async (recordSet,page,employeeNO) => {
         // }
         try{
             // return generateRecords()
-            return deleteAndcreate(recordSet,genCode,page)   
+            return deleteAndcreate(recordSet,genCode,page,recordSet[0].WhsCode)   
         }catch(err){
             resolve()
         }
@@ -32,7 +35,6 @@ const createReturnRecords = async (recordSet) => {
     return new Promise((resolve,reject) => {
         const mappedRecords = recordSet.map((rec,index) => {
             return {
-                id: index,
                 ItemCode: rec.ItemCode!= null? rec.ItemCode : undefined,
                 ItemName: rec.ItemName!= null? rec.ItemName : undefined,
                 CodeBars: rec.CodeBars!= null? rec.CodeBars : undefined,
@@ -41,7 +43,7 @@ const createReturnRecords = async (recordSet) => {
             }
         })
         const start = async () => {
-            const msg = await deleteAllInReturn()
+            const msg = await deleteAllInReturn(recordSet[0].WhsCode)
             if(msg == 'deleted'){
                 resolve(mappedRecords)
             }else{
@@ -54,9 +56,15 @@ const createReturnRecords = async (recordSet) => {
     })
 }
 
-const deleteAllInReturn = async () => {
+const deleteAllInReturn = async (whs) => {
     return new Promise((resolve,reject) => {
-        prisma.returnItems.deleteMany()
+        prisma.returnItems.deleteMany(
+            {
+                where:{
+                    WhsCode:whs
+                }
+            }
+        )
         .catch((e) => {
             console.log(e)
             reject()
@@ -110,7 +118,7 @@ const addToDeliverHis = async (mappedRecords) => {
     })
 }
 
-const deleteAndcreate = async (recordSet,genCode,page) => {
+const deleteAndcreate = async (recordSet,genCode,page,whs) => {
     return new Promise((resolve,reject) => {
         // const isExist = recordsExist(genCode)
         // if(isExist){
@@ -126,7 +134,7 @@ const deleteAndcreate = async (recordSet,genCode,page) => {
         // }else{
         //     resolve()
         // }
-        deleteAll()
+        deleteAll(whs)
         .catch((e) => {
             console.log(e)
             reject()
@@ -136,15 +144,15 @@ const deleteAndcreate = async (recordSet,genCode,page) => {
             resolve()
         })
     }).then(() => {
-        return createAll(recordSet,genCode,'requestItems',page)
+        return createAll(recordSet,genCode,'requestItems',page,whs)
     }).catch(err => {
         reject()
     })
 }
 
-const createAll = async (recordSet,genCode,model,page) => {
+const createAll = async (recordSet,genCode,model,page,whs) => {
     if(page == "goRequest"){
-        await file.addLabel("Suggestion")
+        await file.addLabel("Suggestion",whs)
     }
     return new Promise((resolve,reject) => {
         const length = recordSet.length
@@ -243,9 +251,31 @@ const findAll = async(genCode) => {
     }
 }
 
-const deleteAllInReqReceipt = async() => {
+const deleteAllInReqReceipt = async(whs) => {
     return new Promise((resolve,reject) => {
-        prisma.requestReceiptItems.deleteMany()
+        prisma.requestReceiptItems.deleteMany({
+            where:{
+                WhsCode:whs
+            }
+        })
+            .catch((e) => {
+                console.log(e)
+                reject()
+            })
+            .finally(async () => {
+                await prisma.$disconnect()
+                resolve()
+            })
+    })
+}
+
+const deleteDeliveredInReqReceipt = async(whs) => {
+    return new Promise((resolve,reject) => {
+        prisma.requestReceiptItems.deleteMany({
+            where:{
+                Warehousefrom:whs
+            }
+        })
             .catch((e) => {
                 console.log(e)
                 reject()
@@ -388,7 +418,7 @@ const findAllSentReturn = async(genCode) => {
     }
 }
 
-const findOrderList = async() => {
+const findOrderList = async(whs) => {
     return await prisma.requestItems.findMany({
         orderBy:[
             {
@@ -398,7 +428,8 @@ const findOrderList = async() => {
         where:{
             Order : {
                 not : 0.000000
-            }
+            },
+            WhsCode:whs
         }
     }).catch((e) => {
         console.log(e)
@@ -409,7 +440,7 @@ const findOrderList = async() => {
     })
 }
 
-const findReturnList = async() => {
+const findReturnList = async(whs) => {
     return await prisma.returnItems.findMany({
         orderBy:[
             {
@@ -419,7 +450,8 @@ const findReturnList = async() => {
         where:{
             Order : {
                 not : 0.000000
-            }
+            },
+            WhsCode:whs
         }
     }).catch((e) => {
         console.log(e)
@@ -430,13 +462,16 @@ const findReturnList = async() => {
     })
 }
 
-const findAllRequest = async() => {
+const findAllRequest = async(whs) => {
     return await prisma.requestItems.findMany({
         orderBy:[
             {
                 ItemCode: 'asc',
             }
         ],
+        where:{
+            WhsCode:whs
+        }
     })
     .catch((e) => {
         console.log(e)
@@ -447,7 +482,7 @@ const findAllRequest = async() => {
     })
 }
 
-const findPOreceivedList = async() => {
+const findPOreceivedList = async(whs) => {
     return await prisma.receiptItems.findMany({
         orderBy:[
             {
@@ -457,7 +492,8 @@ const findPOreceivedList = async() => {
         where:{
             Order : {
                 not : 0.000000
-            }
+            },
+            WhsCode:whs
         }
     }).catch((e) => {
         console.log(e)
@@ -491,36 +527,15 @@ const findCountsList = async(value) => {
     })
 }
 
-const findAllPOs = async() => {
+const findAllPOs = async(whs) => {
     return await prisma.receiptItems.findMany({
         orderBy:[
             {
                 ItemCode: 'asc',
             }
         ],
-    })
-    .catch((e) => {
-        console.log(e)
-        return
-    })
-    .finally(async () => {
-        await prisma.$disconnect()
-    })
-}
-
-const findAllHisPOs = async(number,begin,end) => {
-    return await prisma.receipthistory.findMany({
-        orderBy:[
-            {
-                ItemCode: 'asc',
-            }
-        ],
-        where : {
-            DocNum : parseInt(number),
-            createdAt : {
-                lte: end,
-                gte: begin
-            }
+        where:{
+            WhsCode:whs
         }
     })
     .catch((e) => {
@@ -532,7 +547,32 @@ const findAllHisPOs = async(number,begin,end) => {
     })
 }
 
-const findOrderListTransfer = async() => {
+const findAllHisPOs = async(number,begin,end,whs) => {
+    return await prisma.receipthistory.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
+        where : {
+            DocNum : parseInt(number),
+            createdAt : {
+                lte: end,
+                gte: begin
+            },
+            WhsCode:whs
+        }
+    })
+    .catch((e) => {
+        console.log(e)
+        return
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
+const findOrderListTransfer = async(whs) => {
     return await prisma.requestItems.findMany({
         orderBy:[
             {
@@ -545,7 +585,8 @@ const findOrderListTransfer = async() => {
             },
             Warehousefrom : {
                 not : MAIN_WHAREHOUSE
-            }
+            },
+            WhsCode:whs
         }
     }).catch((e) => {
         console.log(e)
@@ -556,13 +597,16 @@ const findOrderListTransfer = async() => {
     })
 }
 
-const findOrderReceiptList = async() => {
+const findOrderReceiptList = async(whs) => {
     return await prisma.requestReceiptItems.findMany({
         orderBy:[
             {
                 ItemCode: 'asc',
             }
         ],
+        where:{
+            WhsCode:whs
+        }
     })
     .catch((e) => {
         console.log(e)
@@ -573,13 +617,33 @@ const findOrderReceiptList = async() => {
     })
 }
 
-const deleteAll = async () => {
+const findOrderDeliverList = async(whs) => {
+    return await prisma.requestReceiptItems.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
+        where:{
+            Warehousefrom:whs
+        }
+    })
+    .catch((e) => {
+        console.log(e)
+        return
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
+const deleteAll = async (whs) => {
     await prisma.requestItems.deleteMany(
-        // {
-        // where:{
-        //     GenCode : genCode
-        // }
-        // }
+        {
+            where:{
+                WhsCode : whs
+            }
+        }
     )
 }
 
@@ -767,7 +831,6 @@ const createNewRequestRecord = async (record,genCode,id,page) => {
   try{
     await prisma.requestItems.create({
         data : {
-          id: id,
           ItemCode: record.ItemCode != null? record.ItemCode : undefined,
           ItemName: record.ItemName != null? record.ItemName : undefined,
           ListNum: record.ListNum != null? record.ListNum : undefined,
@@ -1061,26 +1124,29 @@ const updatePOstatus = async (id,arr) => {
 const getDataLocal = async (whs,employeeNO) =>{
     return new Promise((resolve,reject) => {
         try{
-            const genCode = file.getGenCode(whs,'./postNumber.txt',employeeNO)
-            const results = findAll(genCode)
-                            .catch((e) => {
-                                console.log(e)
-                                reject()
-                            })
-                            .finally(async () => {
-                                await prisma.$disconnect()
-                            })
-            resolve(results)
+            const start = async () => {
+                const genCode = await file.getGenCode(whs,`./${whs}/postNumber.txt`,employeeNO)
+                const results = findAll(genCode)
+                                .catch((e) => {
+                                    console.log(e)
+                                    reject()
+                                })
+                                .finally(async () => {
+                                    await prisma.$disconnect()
+                                })
+                resolve(results)
+            }
+            start()
         }catch(err){
             reject();
         }
     })
 }
 
-const getGenCodeLocal = async () =>{
+const getGenCodeLocal = async (whs) =>{
     return new Promise((resolve,reject) => {
         try{
-            const results = getAllGencodes()
+            const results = getAllGencodes(whs)
                             .catch((e) => {
                                 console.log(e)
                                 reject()
@@ -1113,10 +1179,10 @@ const getGenCodeTransfer = async () =>{
     })
 }
 
-const getSavedLocal = async () =>{
+const getSavedLocal = async (whs) =>{
     return new Promise((resolve,reject) => {
         try{
-            const results = getAllReqReceRec()
+            const results = getAllReqReceRec(whs)
                             .catch((e) => {
                                 console.log(e)
                                 reject()
@@ -1131,17 +1197,20 @@ const getSavedLocal = async () =>{
     })
 }
 
-const getAllReqReceRec = async() => {
+const getAllReqReceRec = async(whs) => {
     return await prisma.requestReceiptItems.findMany({
         orderBy:[
             {
                 ItemCode: 'asc',
             }
         ],
+        where:{
+            WhsCode:whs
+        }
     })
 }
 
-const getAllGencodes = async () => {
+const getAllGencodes = async (whs) => {
     return await prisma.rquestOrderhistory.groupBy({
         by: ['GenCode'],
         orderBy:[
@@ -1150,45 +1219,58 @@ const getAllGencodes = async () => {
             }
         ],
         where:{
-            OR:[
-                {Warehousefrom: MAIN_WHAREHOUSE},
-                {Warehousefrom: CONSUMABLE_WAREHOUSE}
-            ],
-            AND:{
-                Status:"approved"
-            }
-        }
-      })
-}
-
-const getAllTransferGencodes = async () => {
-    return await prisma.rquestOrderhistory.groupBy({
-        by: ['GenCode'],
-        orderBy:[
-            {
-              GenCode: 'desc',
-            }
-        ],
-        where:{
-            Warehousefrom: {
-                not:MAIN_WHAREHOUSE
-            },
-            AND:{
-                Warehousefrom: {
-                    not:CONSUMABLE_WAREHOUSE
+            AND:[
+                {
+                    OR:[
+                        {Warehousefrom: MAIN_WHAREHOUSE},
+                        {Warehousefrom: CONSUMABLE_WAREHOUSE},
+                    ],
+                },
+                {
+                    OR:[
+                        {Status:"approved"},
+                        {Status:"delivered"},
+                    ],
+                },
+                {
+                    WhsCode: whs
                 }
-            },
-            AND:{
-                Status:"approved"
-            }
+            ]
         }
       })
 }
 
-const getDataAllInReturn = async () =>{
+const getAllTransferGencodes = async (whs) => {
+    return await prisma.rquestOrderhistory.groupBy({
+        by: ['GenCode'],
+        orderBy:[
+            {
+              GenCode: 'desc',
+            }
+        ],
+        where:{
+            AND:[
+                {
+                    Warehousefrom: {
+                        not:CONSUMABLE_WAREHOUSE
+                    }
+                },
+                {
+                    Warehousefrom: {
+                        not:MAIN_WHAREHOUSE
+                    }
+                },
+                {Status:"approved"},
+                {WhsCode:whs}
+            ]
+        }
+      })
+}
+
+const getDataAllInReturn = async (whs) =>{
     return new Promise((resolve,reject) => {
         try{
-            const results = findInReturn()
+            const results = findInReturn(whs)
                             .catch((e) => {
                                 console.log(e)
                                 reject()
@@ -1203,13 +1285,16 @@ const getDataAllInReturn = async () =>{
     })
 }
 
-const findInReturn = async () => {
+const findInReturn = async (whs) => {
     const records = await prisma.returnItems.findMany({
         orderBy:[
             {
                 ItemCode: 'asc',
             }
         ],
+        where:{
+            WhsCode:whs
+        }
     })
     if(records.length > 0){
         return records
@@ -1219,10 +1304,10 @@ const findInReturn = async () => {
 }
 
 const transferToHes = async (records,whs) => {
-    createAll(records,null,'historical').then(() => {
+    createAll(records,null,'historical',whs).then(() => {
         const start = async () => {
             // const genCode = await file.previousGetGenCode(whs,'./postNumber.txt')
-            deleteAll()
+            deleteAll(whs)
             .catch((e) => {
                 console.log(e)
             })
@@ -1234,8 +1319,8 @@ const transferToHes = async (records,whs) => {
     })
 }
 
-const transferToReturnHes = async (records,genCode) => {
-    await deleteAllInReturn()
+const transferToReturnHes = async (records,genCode,whs) => {
+    await deleteAllInReturn(whs)
     const mappedRecords = records.map((rec,index) => {
         return {
             ItemCode: rec.ItemCode,
@@ -1275,9 +1360,9 @@ const updateFrom = async (value) => {
     })
 }
 
-const saveAndGetPOs = async (results) => {
+const saveAndGetPOs = async (results,whs) => {
     return new Promise((resolve,reject) => {
-        deleteAllPo()
+        deleteAllPo(whs)
         .catch((e) => {
             console.log(e)
             reject()
@@ -1287,17 +1372,21 @@ const saveAndGetPOs = async (results) => {
             resolve()
         })
     }).then(() => {
-        return saveAllPo(results)
+        return saveAllPo(results,whs)
     })
 }
 
-const deleteAllPo = async () => {
-    await prisma.receiptItems.deleteMany()
+const deleteAllPo = async (whs) => {
+    await prisma.receiptItems.deleteMany({
+        where:{
+            WhsCode:whs
+        }
+    })
 }
 
-const saveAndGetDelivery = async (results) => {
+const saveAndGetDelivery = async (results,whs) => {
     return new Promise((resolve,reject) => {
-        deleteAllDelivery()
+        deleteAllDelivery(whs)
         .catch((e) => {
             console.log(e)
             reject()
@@ -1311,12 +1400,16 @@ const saveAndGetDelivery = async (results) => {
     })
 }
 
-const deleteAllDelivery = async () => {
-    await prisma.requestReceiptItems.deleteMany()
+const deleteAllDelivery = async (whs) => {
+    await prisma.requestReceiptItems.deleteMany({
+        where:{
+            WhsCode:whs
+        }
+    })
 }
 
 const saveAllDelivery = async (mappedData) => {
-    return prisma.requestReceiptItems.createMany({
+    return await prisma.requestReceiptItems.createMany({
         data:mappedData,
         skipDuplicates:true
     })
@@ -1328,7 +1421,7 @@ const saveAllDelivery = async (mappedData) => {
     })
 }
 
-const saveAllPo = async (results) => {
+const saveAllPo = async (results,whs) => {
     const length = results.length
     const arr = []
     let index = 0;
@@ -1352,7 +1445,7 @@ const saveAllPo = async (results) => {
             createNew()
         })
     }).then((msg) => {
-        return getAllSavedPOs()
+        return getAllSavedPOs(whs)
     })
 }
 
@@ -1368,8 +1461,8 @@ const createPOreq = async (rec,arr,index) => {
     })
 }
 
-const getAllSavedPOs = async () => {
-    return getAllPOs()
+const getAllSavedPOs = async (whs) => {
+    return getAllPOs(whs)
     .catch((e) => {
         console.log(e)
         return
@@ -1379,8 +1472,8 @@ const getAllSavedPOs = async () => {
     })
 }
 
-const getAllSavedDelivery = async () => {
-    return getAllDelivery()
+const getAllSavedDelivery = async (whs) => {
+    return getAllDelivery(whs)
     .catch((e) => {
         console.log(e)
         return
@@ -1394,7 +1487,6 @@ const createNewPORecord = async (record,id) => {
     try{
         await prisma.receiptItems.create({
             data : {
-              id: id,
               ItemCode: record.ItemCode != null? record.ItemCode : undefined,
               LineNum: record.LineNum != null? record.LineNum : undefined,
               Dscription: record.Dscription != null? record.Dscription : undefined,
@@ -1402,7 +1494,7 @@ const createNewPORecord = async (record,id) => {
               WhsCode: record.WhsCode != null? record.WhsCode : undefined,
               CardName: record.CardName != null? record.CardName : undefined,
               CardCode: record.CardCode != null? record.CardCode : undefined,
-              DocNum: record.DocNum != null? parseInt(record.DocNum) : undefined,
+              DocNum: record.DocNum != null? record.DocNum : undefined,
               UgpName: record.UgpName != null? record.UgpName : undefined,
               Order: 0,
               OpenQty: record.OpenQty != null? record.OpenQty : undefined,
@@ -1412,27 +1504,33 @@ const createNewPORecord = async (record,id) => {
       }
 }
 
-const getAllPOs = async () => {
+const getAllPOs = async (whs) => {
     return await prisma.receiptItems.findMany({
         orderBy:[
             {
                 ItemCode: 'asc',
             }
         ],
+        where:{
+            WhsCode:whs
+        }
     })
 }
 
-const getAllDelivery = async () => {
+const getAllDelivery = async (whs) => {
     return await prisma.requestReceiptItems.findMany({
         orderBy:[
             {
                 ItemCode: 'asc',
             }
         ],
+        where:{
+            WhsCode:whs
+        }
     })
 }
 
-const transferToReceHis = async (records,genCode) => {
+const transferToReceHis = async (records,genCode,whs) => {
     new Promise((resolve,reject) => {
         let length = records.length
         const arr = []
@@ -1473,7 +1571,7 @@ const transferToReceHis = async (records,genCode) => {
             }
         })
     }).then(() => {
-        deleteAllPo()
+        deleteAllPo(whs)
         .catch((e) => {
             console.log(e)
         })
@@ -1670,5 +1768,7 @@ module.exports = {
     findCountsList,
     getCountRequestHis,
     deleteCountStatus,
-    createAllcountHis
+    createAllcountHis,
+    findOrderDeliverList,
+    deleteDeliveredInReqReceipt
 }
