@@ -2,9 +2,9 @@ var Service = require('node-windows').Service;
 
 // Create a new service object
 var svc = new Service({
-  name:'Demand App',
-  description: 'Demand app for request orders',
-  script: 'C:\\demand-app\\bin\\www',
+  name:'TS Plus',
+  description: 'DIPS app (ts plus version)',
+  script: 'C:\\ts-plus\\bin\\www',
   // execPath: 'C:\\Program Files\\nodejs',
   nodeOptions: [
     '--harmony',
