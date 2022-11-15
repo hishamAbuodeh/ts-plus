@@ -367,9 +367,7 @@ const submit = async (req,res) =>{
                             const length = records.length
                             const arr = []
                             records.forEach(rec => {
-                                const id = rec.id
-                                const order = rec.Order
-                                prisma.updateinHestoricalOrder(id,order,arr)
+                                prisma.updateinHestoricalOrder(rec,arr)
                                 .then(() => {
                                     if(arr.length == length){
                                         resolve()

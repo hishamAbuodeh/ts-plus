@@ -908,9 +908,9 @@ const updateRecordStatus = async (recordID) => {
     })
 }
 
-const updateinHestoricalOrder = async (id,order,arr) => {
+const updateinHestoricalOrder = async (rec,arr) => {
     return new Promise((resolve,reject) => {
-        updateTransferToHes(id,order)
+        updateTransferToHes(rec)
         .catch((e) => {
             console.log(e)
             reject()
@@ -923,14 +923,14 @@ const updateinHestoricalOrder = async (id,order,arr) => {
     })
 }
 
-const updateTransferToHes = async (recordID,order) => {
+const updateTransferToHes = async (rec) => {
     return await prisma.rquestOrderhistory.update({
         where:{
-            id : parseInt(recordID),
+            id: await getID(rec.GenCode,rec.ItemCode)
         },
         data : {
             Status: "confirmed",
-            Order:order
+            Order:parseFloat(rec.Order)
         }
     })
 }
