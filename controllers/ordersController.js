@@ -329,6 +329,9 @@ const submit = async (req,res) =>{
             managerEmail = req.session.managerEmail
         }else if(page == 'receipt'){
             records = await prisma.findOrderReceiptList(req.session.whsCode)
+        }else if(page == 'promotion'){
+            records = await prisma.findOrderList(req.session.whsCode)
+            managerEmail = req.session.supervisorEmail
         }
         if(records.length > 0){
             functions.sendRequestOrder(records,req.session.username,page,note)
@@ -347,6 +350,12 @@ const submit = async (req,res) =>{
                     let text = `هنالك طلب تحويل من مستودع ${records[0].Warehousefrom} الى مستودع ${records[0].WhsCode}`
                     text += '\n'
                     text += `رقم التحويل ${records[0].GenCode}`
+                    sendEmail(text,subject,managerEmail)
+                }else if(page == 'promotion'){
+                    const subject = 'طلب بضاعة عروض'
+                    let text = `هنالك طلب بضاعة عروض من مستودع ${records[0].WhsCode}`
+                    text += '\n'
+                    text += `رقم الطلب ${records[0].GenCode}`
                     sendEmail(text,subject,managerEmail)
                 }
                 const start = async() => {
@@ -447,6 +456,9 @@ const report = async (req,res) => {
         }else if(page == 'deliver'){
             let records = await prisma.findOrderDeliverList(req.session.whsCode)
             res.render('partials/reqRecReport',{results:records,page})
+        }else if(page == 'promotion'){
+            let records = await prisma.findOrderList(req.session.whsCode)
+            res.render('partials/promRep',{results:records})
         }
     }catch(err){
         res.send('error')
@@ -457,9 +469,15 @@ const allReport = async (req,res) => {
     const {page,genCode} = req.params
     try{
         if(page != 'receipt' && page != 'deliver'){
-            let genCode = await file.previousGetGenCode(req.session.whsCode,`./${req.session.whsCode}/postNumber.txt`,req.session.employeeNO)
-            let records = await prisma.findAllSent(genCode)
-            res.render('partials/report',{results:records,page:"allreport"})
+            if(page == 'promotion'){
+                let genCode = await file.previousGetGenCode(req.session.whsCode,`./${req.session.whsCode}/postNumber.txt`,req.session.employeeNO)
+                let records = await prisma.findAllSent(genCode)
+                res.render('partials/promRep',{results:records})
+            }else{
+                let genCode = await file.previousGetGenCode(req.session.whsCode,`./${req.session.whsCode}/postNumber.txt`,req.session.employeeNO)
+                let records = await prisma.findAllSent(genCode)
+                res.render('partials/report',{results:records,page:"allreport"})
+            }
         }else if(page == 'receipt'){
             let records = await prisma.findAllReceipt(genCode)
             res.render('partials/reqRecAllReport',{results:records,page})
@@ -701,6 +719,19 @@ const checkAllowStatus = async (req,res) => {
     }
 }
 
+const promotionPage = async (req,res) => {
+    if(req.session.loggedin)
+    {
+        prisma.getDataLocal(req.session.whsCode,req.session.employeeNO).then(results => {
+            res.render('promotion',{data:results})
+        }).catch(err => {
+            res.render('error')
+        });
+    }else{
+        res.redirect('/Login')
+    }
+}
+
 module.exports = {
     requestPage,
     saveOrderValue,
@@ -727,5 +758,6 @@ module.exports = {
     printPage,
     printReport,
     sendRequestEmail,
-    checkAllowStatus
+    checkAllowStatus,
+    promotionPage
 }

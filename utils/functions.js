@@ -103,6 +103,16 @@ const getAndSaveData = async (whs,page,value,employeeNO) => {
                 msg = hana.getItems(whs).then(results => {
                     return prisma.createReturnRecords(results)
                 })
+            }else if(page == "goPomotion"){
+                msg = hana.getPromotionItems(whs).then(results => {
+                    ///////// for test /////////////
+                    results.map(rec => {
+                        rec.ListName = 'promotion'
+                        return rec
+                    })
+                    ///////// for test /////////////
+                    return prisma.createRecords(results,page,employeeNO)
+                })
             }
             resolve(msg)
         }).then((msg) => {
@@ -234,6 +244,11 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
                 warehouseTo = rec.ListName == 'Consumable'? CONSUMABLE_WAREHOUSE : MAIN_WHAREHOUSE;
                 order = rec.Difference
                 sapProcess = 0
+            }else if(page == "promotion"){
+                warehouseTo = rec.WhsCode
+                warehousefrom = MAIN_WHAREHOUSE;
+                order = rec.Order
+                sapProcess = 3
             }
             pool.request()
             .input("ItemCode",rec.ItemCode)

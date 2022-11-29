@@ -28,6 +28,21 @@ $(document).ready(() => {
     $('#requestReceipt').on('click',() => {
         goToPage('goRequestReceipt')
     })
+    $('#promotion').on('click',() => {
+        $.get('/Transaction/Check')
+        .then((msg) => {
+            isOpened = msg.open
+            if(isOpened){
+                const page = 'goPomotion'
+                showPage(page)
+            }else{
+                showModal('sendEmail')
+            }
+        })
+        .fail(() => {
+            alert("خطأ داخلي الرجاء المحاولة مرة اخرى");
+        })
+    })
     $('.request_close').on('click',()=>{
         hideModal("sendEmail")
     });
