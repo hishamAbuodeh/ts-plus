@@ -248,7 +248,7 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
                 warehouseTo = rec.WhsCode
                 warehousefrom = MAIN_WHAREHOUSE;
                 order = rec.Order
-                sapProcess = 3
+                sapProcess = 4
             }
             pool.request()
             .input("ItemCode",rec.ItemCode)
