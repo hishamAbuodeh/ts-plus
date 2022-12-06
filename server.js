@@ -10,7 +10,7 @@ const session = require('express-session');
 // variables
 const PORT = process.env.PORT;
 const sessionConfig={
-    secret: 'secret',
+    secret: 'jfhsklsiirjslldldppleryan',
     resave: true,
     saveUninitialized: true,
 }

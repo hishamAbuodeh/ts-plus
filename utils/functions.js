@@ -125,18 +125,26 @@ const getAndSaveData = async (whs,page,value,employeeNO) => {
     } 
 }
 
-const sendRequestOrder = async (records,userName,page,note) => {
+const sendRequestOrder = async (records,userName,page,note,employeeNO,count) => {
     return new Promise((resolve,reject) => {
         const start = async () => {
             try{
                 const pool = await sql.getSQL()
                 if(pool){
+                    const genCodeExist = await checkGenCodeSql(pool,records[0].GenCode)
+                    if(genCodeExist){
+                        const newGenCode  = await updateExistGenCode(records[0].WhsCode,employeeNO,records[0].GenCode)
+                        records = records.map(rec => {
+                            rec.GenCode = newGenCode
+                            return rec
+                        })
+                    }
                     const length = records.length
                     const arr = []
                     records.forEach(rec => {
                         if(rec.Status == 'pending'){
                             if(page != "receipt"){
-                                startTransaction(pool,rec,userName,arr,length,page,note)
+                                startTransaction(pool,rec,userName,arr,length,page,note,count)
                                 .then(() => {
                                     resolve()
                                 })
@@ -145,7 +153,7 @@ const sendRequestOrder = async (records,userName,page,note) => {
                                 })
                             }else{
                                 if(parseInt(rec.Difference) != 0){
-                                    startTransaction(pool,rec,userName,arr,length,page,note)
+                                    startTransaction(pool,rec,userName,arr,length,page,note,count)
                                     .then(() => {
                                         resolve()
                                     })
@@ -217,7 +225,7 @@ const sendReturnItems = async (records,userName,note,genCode) => {
     })
 }
 
-const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
+const startTransaction = async (pool,rec,userName,arr,length,page,note,count) => {
     const transaction = await sql.getTransaction(pool);
     return new Promise((resolve,reject) => {
         transaction.begin((err) => {
@@ -238,81 +246,88 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note) => {
                 warehousefrom = rec.ListName == 'Consumable'? CONSUMABLE_WAREHOUSE : MAIN_WHAREHOUSE;
                 warehouseTo = rec.WhsCode
                 order = rec.Order
-                sapProcess = 0
+                sapProcess = 5
             }else if(page == "receipt"){
                 warehousefrom = rec.WhsCode
                 warehouseTo = rec.ListName == 'Consumable'? CONSUMABLE_WAREHOUSE : MAIN_WHAREHOUSE;
                 order = rec.Difference
-                sapProcess = 0
+                sapProcess = 5
             }else if(page == "promotion"){
                 warehouseTo = rec.WhsCode
                 warehousefrom = MAIN_WHAREHOUSE;
                 order = rec.Order
                 sapProcess = 4
             }
-            pool.request()
-            .input("ItemCode",rec.ItemCode)
-            .input("ItemName",rec.ItemName)
-            .input("ListNum",rec.ListNum)
-            .input("ListName",rec.ListName)
-            .input("OnHand",rec.OnHand)
-            .input("MinStock",rec.MinStock)
-            .input("MaxStock",rec.MaxStock)
-            .input("Price",rec.Price)
-            .input("BuyUnitMsr",rec.BuyUnitMsr)
-            .input("WhsCode",warehouseTo)
-            .input("WhsName",rec.WhsName)
-            .input("CodeBars",rec.CodeBars)
-            .input("ConvFactor",rec.ConvFactor)
-            .input("QtyOrders",order)
-            .input("GenCode",rec.GenCode)
-            .input("createdAt",rec.createdAt)
-            .input("warehousefrom",warehousefrom)
-            .input("UserName",userName)
-            .input("Note",note)
-            .input("SAP_Procces",sapProcess)
-            .execute(SQL_REQUEST_TRANSFER_PROCEDURE,(err,result) => {
-                if(err){
-                    console.log('excute',err)
-                    reject()
-                }
-                transaction.commit((err) => {
+            if(userName != undefined){
+                pool.request()
+                .input("ItemCode",rec.ItemCode)
+                .input("ItemName",rec.ItemName)
+                .input("ListNum",rec.ListNum)
+                .input("ListName",rec.ListName)
+                .input("OnHand",rec.OnHand)
+                .input("MinStock",rec.MinStock)
+                .input("MaxStock",rec.MaxStock)
+                .input("Price",rec.Price)
+                .input("BuyUnitMsr",rec.BuyUnitMsr)
+                .input("WhsCode",warehouseTo)
+                .input("WhsName",rec.WhsName)
+                .input("CodeBars",rec.CodeBars)
+                .input("ConvFactor",rec.ConvFactor)
+                .input("QtyOrders",order)
+                .input("GenCode",rec.GenCode)
+                .input("createdAt",rec.createdAt)
+                .input("warehousefrom",warehousefrom)
+                .input("UserName",userName)
+                .input("Note",note)
+                .input("SAP_Procces",sapProcess)
+                .input("CountRows",count)
+                .execute(SQL_REQUEST_TRANSFER_PROCEDURE,(err,result) => {
                     if(err){
-                        console.log('transaction error : ',err)
+                        console.log('excute',err)
                         reject()
                     }
-                    console.log("Transaction committed.");
-                    checkSavedInRequestSql(rec.ItemCode,rec.GenCode,pool)
-                    .then(() => {
-                        if(page != "receipt"){
-                            prisma.updateStatus(rec.id,arr)
-                            .then(() => {
-                                if(arr.length == length){
-                                    pool.close();
-                                    resolve();
-                                }
-                            })
-                            .catch(err => {
-                                reject()
-                            })
-                        }else{
-                            prisma.updateReqRecStatus(rec.id,arr)
-                            .then(() => {
-                                if(arr.length == length){
-                                    pool.close();
-                                    resolve();
-                                }
-                            })
-                            .catch(err => {
-                                reject()
-                            })
+                    transaction.commit((err) => {
+                        if(err){
+                            console.log('transaction error : ',err)
+                            reject()
                         }
-                    })
-                    .catch(() => {
-                        reject()
-                    })
-                });
-            })
+                        console.log("Transaction committed.");
+                        // console.log(rec.ItemCode,rec.ItemName,warehouseTo,rec.WhsName,order,rec.GenCode,userName,note);
+                        checkSavedInRequestSql(rec.ItemCode,rec.GenCode,pool)
+                        .then(() => {
+                            if(page != "receipt"){
+                                prisma.updateStatus(rec.id,arr)
+                                .then(() => {
+                                    if(arr.length == length){
+                                        pool.close();
+                                        resolve();
+                                    }
+                                })
+                                .catch(err => {
+                                    reject()
+                                })
+                            }else{
+                                prisma.updateReqRecStatus(rec.id,arr)
+                                .then(() => {
+                                    if(arr.length == length){
+                                        pool.close();
+                                        resolve();
+                                    }
+                                })
+                                .catch(err => {
+                                    reject()
+                                })
+                            }
+                        })
+                        .catch(() => {
+                            reject()
+                        })
+                    });
+                })
+            }else{
+                console.log('duplicate')
+                resolve();
+            }
         })
     })
 }
@@ -323,6 +338,8 @@ const checkSavedInRequestSql = async(itemCode,genCode,pool) => {
         pool.request().query(queryStatment)
         .then(result => {
             if(result.recordset.length > 0){
+                console.log("Transaction checked.");
+                // console.log(result.recordset[0].ItemCode,result.recordset[0].ItemName,result.recordset[0].WhsCode,result.recordset[0].WhsName,result.recordset[0].QtyOrders,result.recordset[0].GenCode,result.recordset[0].UserName,result.recordset[0].Note);
                 resolve()
             }else{
                 reject()
@@ -766,19 +783,22 @@ const getOpenRequest = async(genCode) => {
 const upsertRequestOrders = async(results) => {
     const length = results.length;
     const arr = []
-    return new Promise((resolve,reject) => {
-        results.forEach(rec => {
-            prisma.upsertAllRec(rec,arr)
-            .then(() => {
-                if(arr.length == length){
-                    resolve()
-                }
-            })
-            .catch(() => {
-                reject()
+    const count = await prisma.getCountRows(results[0].GenCode)
+    if(count){
+        return new Promise((resolve,reject) => {
+            results.forEach(rec => {
+                prisma.upsertAllRec(rec,arr,count)
+                .then(() => {
+                    if(arr.length == length){
+                        resolve()
+                    }
+                })
+                .catch(() => {
+                    reject()
+                })
             })
         })
-    })
+    }
 }
 
 const closeAllowReq = async(username) => {
@@ -921,6 +941,29 @@ const exportReqToExcel = async () => {
     }
 }
 
+const checkGenCodeSql = async(pool,genCode) => {
+    const queryStatment = `select * from ${REQUSET_TRANSFER_TABLE} where GenCode = '${genCode}'`
+    return pool.request().query(queryStatment)
+    .then(result => {
+        if(result.recordset.length > 0){
+            return true
+        }else{
+            return false
+        }
+    })
+}
+
+const updateExistGenCode = async(whsCode,employeeNO,genCode) => {
+    const no = await file.getPostNo(`./${whsCode}/postNumber.txt`)
+    await file.updateGenCode(no,`./${whsCode}/postNumber.txt`)
+    const newGenCode = await file.getGenCode(whsCode,`./${whsCode}/postNumber.txt`,employeeNO)
+    const checkInMysql = await prisma.getGenCodeMySql(genCode)
+    if(checkInMysql.length > 0){
+        await prisma.updateGenCode(genCode,newGenCode)
+    }
+    return newGenCode
+}
+
 module.exports = {
     toggleRequestButton,
     getUser,
@@ -944,5 +987,5 @@ module.exports = {
     getCountingAvailable,
     submitCountToSQL,
     updateCountNo,
-    exportReqToExcel
+    exportReqToExcel,
 }

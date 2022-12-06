@@ -991,9 +991,9 @@ const updateStatus = async (id,arr) => {
     })
 }
 
-const upsertAllRec = async (rec,arr) => {
+const upsertAllRec = async (rec,arr,count) => {
     return new Promise((resolve,reject) => {
-        upsertRecord(rec)
+        upsertRecord(rec,count)
         .catch((e) => {
             console.log(e)
             reject()
@@ -1006,7 +1006,7 @@ const upsertAllRec = async (rec,arr) => {
     })
 }
 
-const upsertRecord = async (rec) => {
+const upsertRecord = async (rec,count) => {
     return await prisma.rquestOrderhistory.upsert({
         where: {
           id: await getID(rec.GenCode,rec.ItemCode)
@@ -1032,9 +1032,21 @@ const upsertRecord = async (rec) => {
             Warehousefrom:rec.Warehousefrom,
             Order:rec.Order,
             Status: "delivered",
-            GenCode: rec.GenCode
+            GenCode: rec.GenCode,
+            CountRows: count
         },
       })
+}
+
+const getCountRows = async(gencode) => {
+    const results = await prisma.rquestOrderhistory.findMany({
+        where:{
+            GenCode:gencode
+        }
+    })
+    if(results){
+        return results[0].CountRows
+    }
 }
 
 const getID = async(genCode,itemCode) => {
@@ -1304,18 +1316,60 @@ const findInReturn = async (whs) => {
 }
 
 const transferToHes = async (records,whs) => {
-    createAll(records,null,'historical',whs).then(() => {
-        const start = async () => {
-            // const genCode = await file.previousGetGenCode(whs,'./postNumber.txt')
-            deleteAll(whs)
-            .catch((e) => {
-                console.log(e)
-            })
-            .finally(async () => {
-                await prisma.$disconnect()
-            })
-        }
-        start()
+    // createAll(records,null,'historical',whs).then(() => {
+    //     const start = async () => {
+    //         // const genCode = await file.previousGetGenCode(whs,'./postNumber.txt')
+    //         deleteAll(whs)
+    //         .catch((e) => {
+    //             console.log(e)
+    //         })
+    //         .finally(async () => {
+    //             await prisma.$disconnect()
+    //         })
+    //     }
+    //     start()
+    // })
+    createAllOrderHis(records,whs)
+}
+
+const createAllOrderHis = async (records,whs) => {
+    await deleteAll(whs).catch((e) => {
+        console.log(e)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+    const mappedData = records.map(rec => {
+        return {
+            ItemCode: rec.ItemCode,
+            ItemName: rec.ItemName,
+            ListNum: rec.ListNum,
+            ListName: rec.ListName,
+            OnHand: rec.OnHand,
+            MinStock: rec.MinStock,
+            MaxStock: rec.MaxStock,
+            Price: rec.Price,
+            BuyUnitMsr: rec.BuyUnitMsr,
+            WhsCode: rec.WhsCode,
+            WhsName: rec.WhsName,
+            CodeBars: rec.CodeBars,
+            ConvFactor: rec.ConvFactor,
+            Order: rec.Order,
+            Warehousefrom: rec.Warehousefrom,
+            Status: 'approved',
+            GenCode: rec.GenCode,
+            CountRows:rec.CountRows
+          }
+    })
+    await prisma.rquestOrderhistory.createMany({
+        data:mappedData,
+        skipDuplicates:true
+    })
+    .catch((e) => {
+        console.log(e)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
     })
 }
 
@@ -1715,6 +1769,35 @@ const getCountRequestHis = async(name) => {
     })
 }
 
+const updateGenCode = async(genCode,newGenCode) => {
+    return await prisma.requestItems.updateMany({
+        data:{
+            GenCode:newGenCode
+        },
+        where:{
+            GenCode:genCode
+        }
+    }).catch((e) => {
+        console.log(e)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
+const getGenCodeMySql = async(genCode) => {
+    return await prisma.requestItems.findMany({
+        where:{
+            GenCode:genCode
+        }
+    }).catch((e) => {
+        console.log(e)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
 module.exports = {
     createRecords,
     getDataLocal,
@@ -1770,5 +1853,8 @@ module.exports = {
     deleteCountStatus,
     createAllcountHis,
     findOrderDeliverList,
-    deleteDeliveredInReqReceipt
+    deleteDeliveredInReqReceipt,
+    updateGenCode,
+    getCountRows,
+    getGenCodeMySql
 }
