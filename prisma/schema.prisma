@@ -78,6 +78,7 @@ model rquestOrderhistory {
     Order Decimal @db.Decimal(10,6) @default(0)
     Status String
     GenCode String
+    CountRows Int
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }

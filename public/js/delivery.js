@@ -506,7 +506,7 @@ const setOrderValueZero = async (id) => {
           }
         },
         images: {
-          logo:'http://localhost:3111/img/logo.jpg',
+          logo:'http://localhost:3112/img/logo.jpg',
           barcode:`${results.results[0].GenCode}`
         }
       }

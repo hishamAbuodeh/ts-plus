@@ -13,6 +13,7 @@ const HANA_WHS_PROCEDURE = process.env.HANA_WHS_PROCEDURE;
 const HANA_OPEN_PO_NUMS = process.env.HANA_OPEN_PO_NUMS;
 const HANA_PO_PROCEDURE = process.env.HANA_PO_PROCEDURE;
 const HANA_REQUEST_RECEIPT_PROCEDURE = process.env.HANA_REQUEST_RECEIPT_PROCEDURE;
+const HANA_PROMOTION_REQUEST_PROCEDURE = process.env.HANA_PROMOTION_REQUEST_PROCEDURE;
 
 const hanaConfig = {
   serverNode: `${HANA_HOST}:30015`,
@@ -92,6 +93,11 @@ const getPOitems = async (whs,number) => {
   return execute(procedureStatment);
 };
 
+const getPromotionItems = async (whs) => {
+  const procedureStatment = `CALL "${HANA_DATABASE}"."${HANA_PROMOTION_REQUEST_PROCEDURE}" ('${whs}')`;
+  return execute(procedureStatment);
+};
+
 const execute = async (procdure) => {
   return new Promise((resolve, reject) => {
     try {
@@ -123,5 +129,6 @@ module.exports = {
   getItemsTransfer,
   getPOitems,
   getRequestReceipt,
-  getPoNums
+  getPoNums,
+  getPromotionItems
 };

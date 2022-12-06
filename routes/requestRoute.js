@@ -11,5 +11,6 @@ router.post('/check/:genCode',controller.genCodeOrderStatus);
 router.post('/:genCode',controller.syncReqReceiptData);
 router.get('/AllowRequest',controller.sendRequestEmail);
 router.get('/CheckAllow',controller.checkAllowStatus);
+router.get('/promotion',controller.promotionPage);
 
 module.exports = router
